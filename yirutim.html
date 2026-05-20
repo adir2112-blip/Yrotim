@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מערכת יירוטים</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --bg2: #161b27;
+  --bg3: #1e2535;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #eef0f6;
+  --text2: #8b93a8;
+  --text3: #555e72;
+  --accent: #4f7fff;
+  --accent2: #3a63e8;
+  --green: #2ecc8f;
+  --green-bg: rgba(46,204,143,0.1);
+  --amber: #f5a623;
+  --amber-bg: rgba(245,166,35,0.1);
+  --red: #e05c5c;
+  --red-bg: rgba(224,92,92,0.1);
+  --blue-bg: rgba(79,127,255,0.1);
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+/* TOP NAV */
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  height: 58px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.nav-brand .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.nav-status {
+  font-size: 12px;
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* TABS */
+.tabs-wrap {
+  padding: 0 2rem;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 0;
+}
+.tab-btn {
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text3);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Heebo', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn .cnt {
+  font-size: 10px;
+  background: var(--blue-bg);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.tab-btn.active .cnt { background: var(--accent); color: #fff; }
+
+/* MAIN */
+.main { padding: 1.75rem 2rem; max-width: 1100px; margin: 0 auto; }
+
+/* FILTER BAR */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+.filter-chip {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text2);
+  transition: all 0.15s;
+  font-family: 'Heebo', sans-serif;
+}
+.filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+.filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* SUMMARY CARDS */
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.s-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.1rem;
+  transition: border-color 0.2s;
+}
+.s-card:hover { border-color: var(--border2); }
+.s-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.s-val {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.s-val.blue { color: var(--accent); }
+.s-val.green { color: var(--green); }
+.s-val.amber { color: var(--amber); }
+.s-val.red { color: var(--red); }
+.s-val.gray { color: var(--text2); }
+.s-sub { font-size: 11px; color: var(--text3); }
+.prog-bar { height: 3px; background: var(--bg3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.5s ease; }
+
+/* ACTIONS */
+.actions-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text);
+  transition: all 0.15s;
+  font-family: 'Heebo', sans-serif;
+}
+.btn:hover { background: var(--bg2); border-color: var(--border2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { background: var(--accent2); }
+.btn.success { background: var(--green-bg); border-color: rgba(46,204,143,0.3); color: var(--green); }
+.btn.success:hover { background: rgba(46,204,143,0.18); }
+.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* TABLE */
+.table-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  padding: 11px 14px;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+tbody td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { transition: background 0.1s; }
+tbody tr:hover td { background: rgba(255,255,255,0.02); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.b-wait { background: var(--blue-bg); color: var(--accent); }
+.b-wait::before { background: var(--accent); }
+.b-done { background: var(--green-bg); color: var(--green); }
+.b-done::before { background: var(--green); }
+.b-miss { background: var(--amber-bg); color: var(--amber); }
+.b-miss::before { background: var(--amber); }
+.b-act { background: var(--bg3); color: var(--text2); font-size: 11px; padding: 2px 8px; border-radius: 20px; }
+.phone-cell { direction: ltr; text-align: right; font-family: 'Courier New', monospace; font-size: 12px; color: var(--text2); }
+.status-sel {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: 'Heebo', sans-serif;
+}
+.status-sel:focus { outline: none; border-color: var(--accent); }
+.del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text3);
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+}
+.del-btn:hover { color: var(--red); background: var(--red-bg); }
+.del-btn svg { width: 14px; height: 14px; }
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text3);
+  font-size: 13px;
+}
+.empty-state svg { width: 32px; height: 32px; margin-bottom: 10px; opacity: 0.3; }
+
+/* STATUS TAB TABLE */
+.status-table-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.st-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px 90px 90px 160px;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.st-row:last-child { border-bottom: none; }
+.st-head { background: rgba(255,255,255,0.02); }
+.st-cell {
+  padding: 12px 16px;
+  font-size: 12px;
+}
+.st-head .st-cell {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.activity-name { font-weight: 600; font-size: 13px; color: var(--text); }
+.old-date { font-size: 12px; color: var(--amber); font-weight: 500; }
+.old-date.fresh { color: var(--green); }
+.num-blue { color: var(--accent); font-weight: 700; font-size: 15px; }
+.num-green { color: var(--green); font-weight: 600; }
+.num-amber { color: var(--amber); font-weight: 600; }
+.mini-bar { display: flex; gap: 2px; align-items: center; }
+.mini-seg { height: 6px; border-radius: 3px; min-width: 4px; }
+
+/* MODAL */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  width: 380px;
+  max-width: 95vw;
+  animation: slideUp 0.2s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.form-group input,
+.form-group select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  padding: 9px 12px;
+  font-family: 'Heebo', sans-serif;
+  transition: border-color 0.15s;
+}
+.form-group input:focus,
+.form-group select:focus { outline: none; border-color: var(--accent); }
+.form-group input::placeholder { color: var(--text3); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem; }
+
+/* SETUP SCREEN */
+.setup-screen {
+  max-width: 540px;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+}
+.setup-screen h2 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; }
+.setup-screen p { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; line-height: 1.6; }
+.setup-screen .steps { margin-bottom: 1.5rem; }
+.step { display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start; }
+.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.step-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.step-text code { background: var(--bg3); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--accent); font-family: monospace; }
+.setup-input-row { display: flex; gap: 8px; }
+.setup-input-row input { flex: 1; }
+.error-msg { font-size: 12px; color: var(--red); margin-top: 8px; }
+
+/* LOADING */
+.loading { text-align: center; padding: 3rem; color: var(--text3); font-size: 13px; }
+.spinner { width: 24px; height: 24px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 999;
+  transition: transform 0.3s ease;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 680px) {
+  .nav { padding: 0 1rem; }
+  .tabs-wrap { padding: 0 0.5rem; overflow-x: auto; }
+  .main { padding: 1rem; }
+  .st-row { grid-template-columns: 1fr 70px 70px 70px; }
+  .st-row .st-cell:nth-child(4),
+  .st-row .st-cell:nth-child(5) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" class="setup-screen" style="display:none">
+  <h2>🔗 חיבור ל-Supabase</h2>
+  <p>כדי לסנכרן בין כל המשתמשים, צריך לחבר את המערכת למסד הנתונים שלך.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">היכנס ל-<a href="https://supabase.com" target="_blank" style="color:var(--accent)">supabase.com</a> ← פתח את הפרויקט שלך ← לחץ על <code>SQL Editor</code> והרץ:</div>
+    </div>
+    <pre style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--text2);margin:0 0 1rem 0;overflow-x:auto;direction:ltr;text-align:left">create table yirutim (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  phone text not null,
+  activity text not null,
+  status text default 'טרם טופל',
+  note text default '',
+  created_at timestamptz default now()
+);
+alter table yirutim enable row level security;
+create policy "allow all" on yirutim for all using (true);</pre>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">לך ל-<code>Settings → API</code> — העתק את <code>Project URL</code> ואת <code>anon key</code></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">הזן אותם כאן ולחץ חבר:</div>
+    </div>
+  </div>
+  <div class="form-group"><label>Project URL</label><input id="sb-url" placeholder="https://xxxx.supabase.co" type="url"></div>
+  <div class="form-group"><label>Anon Key</label><input id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIs..."></div>
+  <div id="setup-error" class="error-msg" style="display:none"></div>
+  <div style="margin-top:1rem">
+    <button class="btn primary" onclick="connectSupabase()" id="connect-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      חבר
+    </button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <nav class="nav">
+    <div class="nav-brand">
+      <div class="dot"></div>
+      מערכת יירוטים
+    </div>
+    <div class="nav-status" id="sync-status">מחובר</div>
+  </nav>
+  
+  <div class="tabs-wrap">
+    <button class="tab-btn active" onclick="switchMainTab('records')" id="tab-records">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      ניהול יירוטים
+      <span class="cnt" id="tab-cnt">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchMainTab('status')" id="tab-status">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      סטטוס פעילויות
+    </button>
+  </div>
+
+  <!-- RECORDS TAB -->
+  <div id="view-records" class="main">
+    <div class="filter-bar" id="filter-bar"></div>
+    <div class="summary-row" id="summary-row"></div>
+    <div class="actions-row">
+      <button class="btn primary" onclick="openAdd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        הוסף יירוט
+      </button>
+      <button class="btn success" onclick="exportExcel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        ייצוא ממתינים לאקסל
+      </button>
+      <button class="btn" onclick="loadRecords()" title="רענן">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        רענן
+      </button>
+    </div>
+    <div class="table-wrap">
+      <div id="tbl-loading" class="loading"><div class="spinner"></div>טוען...</div>
+      <table id="main-table" style="display:none">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th>שם לקוח</th>
+            <th>טלפון</th>
+            <th>פעילות</th>
+            <th>תאריך</th>
+            <th>סטטוס</th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STATUS TAB -->
+  <div id="view-status" class="main" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px;">סטטוס פעילויות</div>
+        <div style="font-size:12px;color:var(--text3);">מבט על על כל הפעילויות ביחד</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)" id="last-updated"></div>
+    </div>
+
+    <div class="summary-row" id="status-summary"></div>
+
+    <div class="status-table-wrap" id="status-table">
+      <div class="loading"><div class="spinner"></div>טוען...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="overlay" id="modal-add">
+  <div class="modal">
+    <h3>הוספת יירוט חדש</h3>
+    <div class="form-group"><label>שם לקוח</label><input id="f-name" placeholder="ישראל ישראלי"></div>
+    <div class="form-group"><label>טלפון</label><input id="f-phone" placeholder="05X-XXXXXXX" type="tel"></div>
+    <div class="form-group"><label>פעילות</label>
+      <select id="f-activity">
+        <option>כללית אקטיב</option>
+        <option>עובדים בריא</option>
+        <option>לאומית FIT</option>
+        <option>מעוף לעמית</option>
+        <option>מאוחדת</option>
+      </select>
+    </div>
+    <div class="form-group"><label>הערה (אופציונלי)</label><input id="f-note" placeholder="פרטים נוספים"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAdd()">ביטול</button>
+      <button class="btn primary" onclick="saveAdd()" id="save-btn">שמור</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת'];
+const STATUSES = ['טרם טופל','טופל','אין מענה'];
+const SB_URL_KEY = 'sb_url';
+const SB_KEY_KEY = 'sb_key';
+
+let sb = null;
+let records = [];
+let currentFilter = 'all';
+let currentMainTab = 'records';
+let realtimeSub = null;
+
+// ---- INIT ----
+window.addEventListener('DOMContentLoaded', () => {
+  const url = localStorage.getItem(SB_URL_KEY);
+  const key = localStorage.getItem(SB_KEY_KEY);
+  if (url && key) {
+    initSupabase(url, key);
+  } else {
+    document.getElementById('setup-screen').style.display = 'block';
+  }
+});
+
+function initSupabase(url, key) {
+  sb = window.supabase.createClient(url, key);
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadRecords();
+  subscribeRealtime();
+}
+
+async function connectSupabase() {
+  const url = document.getElementById('sb-url').value.trim();
+  const key = document.getElementById('sb-key').value.trim();
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display = 'none';
+  if (!url || !key) { errEl.textContent = 'יש למלא את שני השדות'; errEl.style.display = 'block'; return; }
+  document.getElementById('connect-btn').textContent = 'מתחבר...';
+  try {
+    const client = window.supabase.createClient(url, key);
+    const { error } = await client.from('yirutim').select('id').limit(1);
+    if (error) throw error;
+    localStorage.setItem(SB_URL_KEY, url);
+    localStorage.setItem(SB_KEY_KEY, key);
+    initSupabase(url, key);
+  } catch(e) {
+    errEl.textContent = 'שגיאת חיבור: ' + (e.message || 'בדוק שה-URL וה-Key נכונים, ושהטבלה נוצרה');
+    errEl.style.display = 'block';
+    document.getElementById('connect-btn').textContent = 'חבר';
+  }
+}
+
+function subscribeRealtime() {
+  if (realtimeSub) sb.removeChannel(realtimeSub);
+  realtimeSub = sb.channel('yirutim-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'yirutim' }, () => {
+      loadRecords(true);
+    })
+    .subscribe();
+}
+
+// ---- DATA ----
+async function loadRecords(silent = false) {
+  if (!silent) {
+    document.getElementById('tbl-loading').style.display = 'block';
+    document.getElementById('main-table').style.display = 'none';
+  }
+  const { data, error } = await sb.from('yirutim').select('*').order('created_at', { ascending: false });
+  if (error) { toast('שגיאה בטעינה: ' + error.message); return; }
+  records = data || [];
+  document.getElementById('sync-status').textContent = 'מעודכן ' + new Date().toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
+  render();
+  document.getElementById('tbl-loading').style.display = 'none';
+  document.getElementById('main-table').style.display = 'table';
+}
+
+async function changeStatus(id, val) {
+  const { error } = await sb.from('yirutim').update({ status: val }).eq('id', id);
+  if (error) { toast('שגיאה בעדכון'); return; }
+  const r = records.find(r => r.id === id);
+  if (r) r.status = val;
+  render();
+}
+
+async function deleteRecord(id) {
+  if (!confirm('למחוק את הרשומה?')) return;
+  const { error } = await sb.from('yirutim').delete().eq('id', id);
+  if (error) { toast('שגיאה במחיקה'); return; }
+  records = records.filter(r => r.id !== id);
+  render();
+  toast('נמחק בהצלחה');
+}
+
+async function saveAdd() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const activity = document.getElementById('f-activity').value;
+  const note = document.getElementById('f-note').value.trim();
+  if (!name || !phone) { toast('יש למלא שם וטלפון'); return; }
+  document.getElementById('save-btn').textContent = 'שומר...';
+  const { data, error } = await sb.from('yirutim').insert([{ name, phone, activity, note, status: 'טרם טופל' }]).select();
+  document.getElementById('save-btn').textContent = 'שמור';
+  if (error) { toast('שגיאה בשמירה: ' + error.message); return; }
+  closeAdd();
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-note').value = '';
+  records.unshift(data[0]);
+  render();
+  toast('יירוט נוסף בהצלחה ✓');
+}
+
+// ---- RENDER ----
+function filtered() {
+  return currentFilter === 'all' ? records : records.filter(r => r.activity === currentFilter);
+}
+
+function render() {
+  renderFilterBar();
+  renderSummary();
+  renderTable();
+  updateTabCount();
+  if (currentMainTab === 'status') renderStatusTab();
+}
+
+function renderFilterBar() {
+  const bar = document.getElementById('filter-bar');
+  const all = [{ key: 'all', label: 'כל הפעילויות' }, ...ACTIVITIES.map(a => ({ key: a, label: a }))];
+  bar.innerHTML = all.map(({ key, label }) =>
+    `<button class="filter-chip${currentFilter === key ? ' active' : ''}" onclick="setFilter('${key}')">${label}</button>`
+  ).join('');
+}
+
+function setFilter(f) { currentFilter = f; render(); }
+
+function renderSummary() {
+  const data = filtered();
+  const total = data.length;
+  const wait = data.filter(r => r.status === 'טרם טופל').length;
+  const done = data.filter(r => r.status === 'טופל').length;
+  const miss = data.filter(r => r.status === 'אין מענה').length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('summary-row').innerHTML = `
+    <div class="s-card"><div class="s-label">סה"כ יירוטים</div><div class="s-val gray">${total}</div></div>
+    <div class="s-card"><div class="s-label">טרם טופלו</div><div class="s-val blue">${wait}</div><div class="s-sub">ממתינים לחזרה</div></div>
+    <div class="s-card"><div class="s-label">טופלו</div><div class="s-val green">${done}</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+    <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val amber">${miss}</div></div>
+    <div class="s-card"><div class="s-label">אחוז טיפול</div><div class="s-val green">${pct}%</div><div class="s-sub">מכלל היירוטים</div></div>
+  `;
+}
+
+function renderTable() {
+  const data = filtered();
+  const tbody = document.getElementById('tbl-body');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map((r, i) => {
+    const dt = new Date(r.created_at);
+    const dateStr = dt.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'2-digit' });
+    return `<tr>
+      <td style="color:var(--text3);font-size:11px">${i+1}</td>
+      <td style="font-weight:500">${r.name}</td>
+      <td><span class="phone-cell">${r.phone}</span></td>
+      <td><span class="b-act">${r.activity}</span></td>
+      <td style="font-size:11px;color:var(--text3)">${dateStr}</td>
+      <td>
+        <select class="status-sel" onchange="changeStatus('${r.id}',this.value)">
+          ${STATUSES.map(s => `<option${s===r.status?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateTabCount() {
+  const wait = records.filter(r => r.status === 'טרם טופל').length;
+  document.getElementById('tab-cnt').textContent = wait;
+}
+
+// ---- STATUS TAB ----
+function renderStatusTab() {
+  const container = document.getElementById('status-table');
+  document.getElementById('last-updated').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+
+  // global summary
+  const total = records.length;
+  const gWait = records.filter(r=>r.status==='טרם טופל').length;
+  const gDone = records.filter(r=>r.status==='טופל').length;
+  const gMiss = records.filter(r=>r.status==='אין מענה').length;
+  document.getElementById('status-summary').innerHTML = `
+    <div class="s-card"><div class="s-label">סה"כ כל הפעילויות</div><div class="s-val gray">${total}</div></div>
+    <div class="s-card"><div class="s-label">טרם טופלו (סה"כ)</div><div class="s-val blue">${gWait}</div></div>
+    <div class="s-card"><div class="s-label">טופלו (סה"כ)</div><div class="s-val green">${gDone}</div></div>
+    <div class="s-card"><div class="s-label">אין מענה (סה"כ)</div><div class="s-val amber">${gMiss}</div></div>
+  `;
+
+  const rows = ACTIVITIES.map(act => {
+    const recs = records.filter(r => r.activity === act);
+    const wait = recs.filter(r => r.status === 'טרם טופל').length;
+    const done = recs.filter(r => r.status === 'טופל').length;
+    const miss = recs.filter(r => r.status === 'אין מענה').length;
+    const total = recs.length;
+    // oldest waiting
+    const waiting = recs.filter(r => r.status === 'טרם טופל');
+    let oldestStr = '—';
+    let isFresh = false;
+    if (waiting.length) {
+      const oldest = waiting.reduce((a,b) => new Date(a.created_at) < new Date(b.created_at) ? a : b);
+      const dt = new Date(oldest.created_at);
+      const diffDays = Math.floor((Date.now() - dt) / 86400000);
+      oldestStr = dt.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' });
+      if (diffDays === 0) { oldestStr += ' (היום)'; isFresh = true; }
+      else if (diffDays === 1) oldestStr += ' (אתמול)';
+      else oldestStr += ` (לפני ${diffDays} ימים)`;
+    }
+    const pct = total ? Math.round(done/total*100) : 0;
+    const wPct = total ? Math.round(wait/total*100) : 0;
+    const mPct = total ? Math.round(miss/total*100) : 0;
+    return { act, wait, done, miss, total, oldestStr, isFresh, pct, wPct, mPct };
+  });
+
+  container.innerHTML = `
+    <div class="st-row st-head">
+      <div class="st-cell">פעילות</div>
+      <div class="st-cell" style="text-align:center">טרם טופלו</div>
+      <div class="st-cell" style="text-align:center">טופלו</div>
+      <div class="st-cell" style="text-align:center">אין מענה</div>
+      <div class="st-cell" style="text-align:center">סה"כ</div>
+      <div class="st-cell">יירוט ישן ביותר</div>
+    </div>
+    ${rows.map(r => `
+    <div class="st-row">
+      <div class="st-cell">
+        <div class="activity-name">${r.act}</div>
+        <div class="mini-bar" style="margin-top:6px">
+          <div class="mini-seg" style="width:${Math.max(r.wPct,4)}px;background:var(--accent);opacity:0.8" title="ממתינים"></div>
+          <div class="mini-seg" style="width:${Math.max(r.pct,4)}px;background:var(--green);opacity:0.8" title="טופלו"></div>
+          <div class="mini-seg" style="width:${Math.max(r.mPct,4)}px;background:var(--amber);opacity:0.8" title="אין מענה"></div>
+        </div>
+      </div>
+      <div class="st-cell" style="text-align:center"><span class="num-blue">${r.wait}</span></div>
+      <div class="st-cell" style="text-align:center"><span class="num-green">${r.done}</span></div>
+      <div class="st-cell" style="text-align:center"><span class="num-amber">${r.miss}</span></div>
+      <div class="st-cell" style="text-align:center;color:var(--text2)">${r.total}</div>
+      <div class="st-cell"><span class="old-date${r.isFresh?' fresh':''}">${r.oldestStr}</span></div>
+    </div>
+    `).join('')}
+  `;
+}
+
+// ---- TABS ----
+function switchMainTab(tab) {
+  currentMainTab = tab;
+  document.getElementById('view-records').style.display = tab === 'records' ? 'block' : 'none';
+  document.getElementById('view-status').style.display = tab === 'status' ? 'block' : 'none';
+  document.getElementById('tab-records').className = 'tab-btn' + (tab === 'records' ? ' active' : '');
+  document.getElementById('tab-status').className = 'tab-btn' + (tab === 'status' ? ' active' : '');
+  if (tab === 'status') renderStatusTab();
+}
+
+// ---- MODAL ----
+function openAdd() { document.getElementById('modal-add').classList.add('open'); }
+function closeAdd() { document.getElementById('modal-add').classList.remove('open'); }
+document.getElementById('modal-add').addEventListener('click', e => { if (e.target === e.currentTarget) closeAdd(); });
+
+// ---- EXPORT ----
+function exportExcel() {
+  const activity = currentFilter === 'all' ? 'כל הפעילויות' : currentFilter;
+  const data = filtered().filter(r => r.status === 'טרם טופל');
+  if (!data.length) { toast('אין ממתינים לייצוא בפעילות זו'); return; }
+  const rows = data.map((r, i) => {
+    const dt = new Date(r.created_at);
+    return { '#': i+1, 'שם לקוח': r.name, 'טלפון': r.phone, 'פעילות': r.activity, 'תאריך': dt.toLocaleDateString('he-IL'), 'הערה': r.note||'' };
+  });
+  const ws = XLSX.utils.json_to_sheet(rows, { header: ['#','שם לקוח','טלפון','פעילות','תאריך','הערה'] });
+  ws['!cols'] = [{wch:4},{wch:22},{wch:15},{wch:16},{wch:12},{wch:28}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ממתינים');
+  XLSX.writeFile(wb, `ממתינים_${activity}_${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.xlsx`);
+  toast('הורד בהצלחה ✓');
+}
+
+// ---- TOAST ----
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
