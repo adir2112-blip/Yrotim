@@ -186,6 +186,26 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);border-radius:var(--radius);padding:11px 20px;font-size:14px;color:#fff;z-index:999;transition:transform 0.3s ease;white-space:nowrap;box-shadow:var(--shadow-md);}
 .toast.show{transform:translateX(-50%) translateY(0);}
 
+/* SLA OVERDUE ALERT */
+.sla-overdue-alert{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 12px;border-radius:8px;
+  background:#dc3545;color:#fff;
+  font-size:12px;font-weight:700;
+  border:2px solid #a71d2a;
+  box-shadow:0 0 0 3px rgba(220,53,69,0.25),0 2px 8px rgba(220,53,69,0.4);
+  animation:sla-pulse 1.4s ease-in-out infinite;
+  white-space:nowrap;margin-top:6px;
+}
+@keyframes sla-pulse{
+  0%,100%{box-shadow:0 0 0 3px rgba(220,53,69,0.25),0 2px 8px rgba(220,53,69,0.4);}
+  50%{box-shadow:0 0 0 7px rgba(220,53,69,0.1),0 2px 14px rgba(220,53,69,0.5);}
+}
+.sla-overdue-alert svg{width:14px;height:14px;flex-shrink:0;}
+.st-row.sla-over{background:#fff5f5;}
+.st-row.sla-over:hover{background:#ffecec;}
+.st-row.sla-over .st-cell:first-child{border-right:4px solid #dc3545;}
+
 @media(max-width:700px){
   .nav{padding:0 1rem;}.main{padding:1rem;}
   .st-row{grid-template-columns:1fr 70px 70px 70px;}
@@ -744,7 +764,7 @@ function renderStatusTab() {
     <div class="s-card"><div class="s-label">טרם טופלו</div><div class="s-val c-blue">${gWait}</div></div>
     <div class="s-card"><div class="s-label">טופלו</div><div class="s-val c-green">${gDone}</div></div>
     <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val c-gray">${gMiss}</div></div>
-    ${gSla>0?`<div class="s-card sla-card"><div class="s-label">חריגת SLA</div><div class="s-val c-sla">${gSla}</div></div>`:''}
+    ${gSla>0?`<div class="s-card sla-card"><div class="s-label">⚠️ חריגת SLA</div><div class="s-val c-sla">${gSla}</div><div class="s-sub">מעל 48 שע' עסקיות</div></div>`:''}
   `;
 
   const rows=ACTIVITIES.map(act=>{
@@ -753,28 +773,49 @@ function renderStatusTab() {
     const done=recs.filter(r=>r.status==='טופל').length;
     const miss=recs.filter(r=>r.status==='אין מענה').length;
     const total=recs.length;
-    const slaCount=getSlaOverdue().filter(r=>r.activity===act).length;
+    const slaRecs=getSlaOverdue().filter(r=>r.activity===act);
+    const slaCount=slaRecs.length;
     const waiting=recs.filter(r=>r.status==='טרם טופל');
+
     let oldestHTML='<span style="color:var(--text3)">—</span>';
+    let isOverdue=false;
     if (waiting.length) {
       const oldest=waiting.reduce((a,b)=>new Date(a.created_at)<new Date(b.created_at)?a:b);
       const days=Math.floor((Date.now()-new Date(oldest.created_at))/86400000);
       const bh=calcBusinessHours(new Date(oldest.created_at));
       const dateStr=new Date(oldest.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'});
-      let cls='age-0',label='';
-      if (days===0){cls='age-0';label='היום';}
-      else if (days===1){cls='age-1';label='אתמול';}
-      else if (days===2){cls='age-2';label='יומיים';}
-      else if (days===3){cls='age-3';label=`${days} ימים`;}
-      else if (days<=5){cls='age-4';label=`${days} ימים`;}
-      else{cls='age-5';label=`${days} ימים`;}
-      const slaWarn=bh>SLA_HOURS?' ⚠️':'';
-      oldestHTML=`<span class="age-badge ${cls}">${dateStr} · ${label}${slaWarn}</span>`;
+      isOverdue = bh > SLA_HOURS;
+
+      if (isOverdue) {
+        // bold pulsing alert
+        const bhDisplay = bh > 99 ? '99+' : bh;
+        oldestHTML=`
+          <div>
+            <span class="age-badge age-5">${dateStr} · ${days} ימים</span>
+            <div class="sla-overdue-alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              חריגת SLA! ${bhDisplay} שע' עסקיות
+            </div>
+          </div>`;
+      } else {
+        let cls='age-0',label='';
+        if (days===0){cls='age-0';label='היום';}
+        else if (days===1){cls='age-1';label='אתמול';}
+        else if (days===2){cls='age-2';label='יומיים';}
+        else if (days===3){cls='age-3';label=`${days} ימים`;}
+        else if (days<=5){cls='age-4';label=`${days} ימים`;}
+        else{cls='age-5';label=`${days} ימים`;}
+        oldestHTML=`<span class="age-badge ${cls}">${dateStr} · ${label}</span>`;
+      }
     }
+
     const pct=total?Math.round(done/total*100):0;
     const wPct=total?Math.round(wait/total*100):0;
     const mPct=total?Math.round(miss/total*100):0;
-    return {act,wait,done,miss,total,slaCount,oldestHTML,pct,wPct,mPct};
+    return {act,wait,done,miss,total,slaCount,isOverdue,oldestHTML,pct,wPct,mPct};
   });
 
   document.getElementById('status-table').innerHTML=`
@@ -787,7 +828,7 @@ function renderStatusTab() {
       <div class="st-cell">יירוט ישן ביותר</div>
     </div>
     ${rows.map(r=>`
-    <div class="st-row">
+    <div class="st-row${r.isOverdue?' sla-over':''}">
       <div class="st-cell">
         <div class="activity-name">${r.act}${r.slaCount>0?` <span class="sla-badge">⏱ ${r.slaCount}</span>`:''}</div>
         <div class="mini-bar">
