@@ -104,8 +104,19 @@ tbody tr:hover td{background:var(--bg3);}
 .b-act{background:var(--bg3);color:var(--text2);font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;border:1px solid var(--border2);}
 
 .phone-cell{direction:ltr;text-align:right;font-family:'Courier New',monospace;font-size:13px;color:var(--text2);}
-.status-sel{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:5px 10px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:500;}
-.status-sel:focus{outline:none;border-color:var(--accent);}
+
+/* STATUS SELECT — colored */
+.status-sel{border:1.5px solid var(--border2);border-radius:8px;font-size:13px;padding:5px 10px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:600;transition:all 0.15s;}
+.status-sel:focus{outline:none;}
+.status-sel.s-wait{background:#f8f9ff;color:var(--accent);border-color:rgba(58,107,255,0.35);}
+.status-sel.s-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-sel.s-miss{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+
+/* STATUS TIMESTAMP */
+.status-ts{font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;}
+.status-ts.ts-done{color:var(--green);}
+.status-ts.ts-miss{color:var(--gray);}
+
 .del-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;}
 .del-btn:hover{color:var(--red);background:var(--red-bg);}
 .del-btn svg{width:15px;height:15px;}
@@ -178,6 +189,46 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
   .st-row{grid-template-columns:1fr 70px 70px 70px;}
   .st-row .st-cell:nth-child(4),.st-row .st-cell:nth-child(5){display:none;}
 }
+
+/* ===== AGENT MODE ===== */
+.agent-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;height:60px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.agent-brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;color:var(--text);}
+.agent-brand .dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-bg);animation:pulse 2s ease-in-out infinite;}
+.agent-subtitle{font-size:12px;color:var(--text3);margin-top:1px;}
+.agent-main{padding:1.25rem;max-width:680px;margin:0 auto;}
+.agent-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px;}
+.agent-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1.25rem;}
+.agent-stat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0.85rem 1.1rem;box-shadow:var(--shadow);flex:1;min-width:100px;}
+.agent-stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-bottom:6px;}
+.agent-stat-val{font-size:24px;font-weight:700;}
+.agent-filter{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.1rem;}
+.agent-chip{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);transition:all 0.15s;font-family:'Heebo',sans-serif;}
+.agent-chip:hover{border-color:var(--accent);color:var(--accent);}
+.agent-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.agent-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.25rem;margin-bottom:10px;box-shadow:var(--shadow);transition:box-shadow 0.15s;}
+.agent-card:hover{box-shadow:var(--shadow-md);}
+.agent-card.sla-card-row{border-right:4px solid var(--sla-border);background:#fffdf5;}
+.agent-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px;}
+.agent-name{font-size:17px;font-weight:700;color:var(--text);}
+.agent-phone{font-size:15px;color:var(--text2);font-family:'Courier New',monospace;direction:ltr;display:inline-block;margin-top:3px;}
+.agent-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.agent-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.agent-btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all 0.15s;font-family:'Heebo',sans-serif;}
+.agent-btn svg{width:16px;height:16px;flex-shrink:0;}
+.agent-btn.call{background:#f0f4ff;color:var(--accent);border-color:rgba(58,107,255,0.3);}
+.agent-btn.call:hover{background:var(--accent);color:#fff;}
+.agent-btn.done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.agent-btn.done:hover{background:var(--green);color:#fff;}
+.agent-btn.miss{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.agent-btn.miss:hover{background:var(--gray);color:#fff;}
+.agent-btn:disabled{opacity:0.45;cursor:not-allowed;}
+.agent-done-overlay{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--green-bg);border-radius:var(--radius);color:var(--green);font-size:14px;font-weight:600;border:1px solid var(--green-border);}
+.agent-miss-overlay{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--gray-bg);border-radius:var(--radius);color:var(--gray);font-size:14px;font-weight:600;border:1px solid var(--gray-border);}
+.agent-empty{text-align:center;padding:3rem 1rem;color:var(--text3);}
+.agent-empty svg{width:48px;height:48px;margin:0 auto 14px;display:block;opacity:0.2;}
+.agent-empty h3{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.agent-empty p{font-size:14px;}
+.agent-sla-warn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:var(--sla-bg);color:var(--sla-text);border:1px solid var(--sla-border);}
 </style>
 </head>
 <body>
@@ -186,6 +237,13 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     <div class="nav-brand"><div class="dot"></div>מערכת יירוטים</div>
     <span class="nav-status" id="sync-status"></span>
   </nav>
+
+  <!-- ONE-TIME MIGRATION NOTICE -->
+  <div id="migration-notice" style="display:none;background:#eef2ff;border-bottom:2px solid #3a6bff;padding:10px 2rem;font-size:13px;color:#1e3a8a;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span>⚡ עדכון נדרש חד-פעמי ב-Supabase SQL Editor:</span>
+    <code style="background:#fff;padding:3px 10px;border-radius:6px;border:1px solid #c7d2fe;font-size:12px;direction:ltr">ALTER TABLE yirutim ADD COLUMN IF NOT EXISTS status_changed_at timestamptz;</code>
+    <button onclick="document.getElementById('migration-notice').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:18px;color:#3a6bff;margin-right:auto">×</button>
+  </div>
 
   <div class="sla-banner" id="sla-banner">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -244,6 +302,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
           <th style="width:36px">#</th>
           <th>שם לקוח</th><th>טלפון</th><th>פעילות</th>
           <th>תאריך</th><th>גיל יירוט</th><th>סטטוס</th>
+          <th>עדכון אחרון</th>
           <th style="width:44px"></th>
         </tr></thead>
         <tbody id="tbl-body"></tbody>
@@ -356,29 +415,176 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 
 <div class="toast" id="toast"></div>
 
+<!-- AGENT MODE -->
+<div id="agent-app" style="display:none">
+  <nav class="agent-nav">
+    <div class="agent-brand">
+      <div class="dot"></div>
+      <div>
+        <div>יירוטים — מצב נציג</div>
+        <div class="agent-subtitle" id="agent-sync"></div>
+      </div>
+    </div>
+    <span id="agent-nav-cnt" style="font-size:13px;color:var(--text3)"></span>
+  </nav>
+
+  <div class="agent-main">
+    <div class="agent-stats" id="agent-stats"></div>
+    <div class="agent-filter" id="agent-filter"></div>
+    <div id="agent-list"></div>
+  </div>
+</div>
+
 <script>
 const SB_URL = 'https://qyqkimpaffhizouuwdko.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5cWtpbXBhZmZoaXpvdXV3ZGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODUxMzUsImV4cCI6MjA5NDg2MTEzNX0.zlIo9vTfWKhpSHeTHqRExTnWtAuJLsZjK_Hlii1Oa_c';
 const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת'];
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
+const IS_AGENT = new URLSearchParams(window.location.search).get('agent') === '1';
 
 let sb, records = [], currentFilter = 'all', currentTab = 'records';
+let agentFilter = 'all';
 
 window.addEventListener('DOMContentLoaded', () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
-  loadRecords();
-  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
+  if (IS_AGENT) {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('agent-app').style.display = 'block';
+    loadAgentRecords();
+    sb.channel('rt-agent').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadAgentRecords(true)).subscribe();
+  } else {
+    loadRecords();
+    sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
+  }
 });
 
 async function loadRecords(silent=false) {
   if (!silent) { document.getElementById('tbl-loading').style.display='block'; document.getElementById('main-table').style.display='none'; }
   const {data} = await sb.from('yirutim').select('*').order('created_at',{ascending:false});
   records = data||[];
+  // check if status_changed_at column exists
+  if (data && data.length>0 && !('status_changed_at' in data[0])) {
+    document.getElementById('migration-notice').style.display='flex';
+  }
   document.getElementById('sync-status').textContent = 'עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
   document.getElementById('tbl-loading').style.display='none';
   document.getElementById('main-table').style.display='table';
   render();
+}
+
+// ===== AGENT MODE FUNCTIONS =====
+async function loadAgentRecords(silent=false) {
+  const {data} = await sb.from('yirutim').select('*')
+    .eq('status','טרם טופל')
+    .order('created_at',{ascending:true}); // oldest first
+  records = data||[];
+  document.getElementById('agent-sync').textContent = 'עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+  renderAgent();
+}
+
+function agentFiltered() {
+  return agentFilter==='all' ? records : records.filter(r=>r.activity===agentFilter);
+}
+
+function renderAgent() {
+  const data = agentFiltered();
+  const total = records.length;
+  const overdue = records.filter(r=>calcBusinessHours(new Date(r.created_at))>SLA_HOURS).length;
+
+  document.getElementById('agent-nav-cnt').textContent = `${total} ממתינים לטיפול`;
+
+  // Stats
+  document.getElementById('agent-stats').innerHTML = `
+    <div class="agent-stat"><div class="agent-stat-label">ממתינים</div><div class="agent-stat-val c-blue">${total}</div></div>
+    ${overdue>0?`<div class="agent-stat" style="background:var(--sla-bg);border-color:var(--sla-border)"><div class="agent-stat-label">חריגת SLA</div><div class="agent-stat-val c-sla">${overdue}</div></div>`:''}
+  `;
+
+  // Filter chips
+  const actCounts = ACTIVITIES.map(a=>({a, n:records.filter(r=>r.activity===a).length})).filter(x=>x.n>0);
+  document.getElementById('agent-filter').innerHTML =
+    `<button class="agent-chip${agentFilter==='all'?' active':''}" onclick="setAgentFilter('all')">הכל (${total})</button>`+
+    actCounts.map(({a,n})=>`<button class="agent-chip${agentFilter===a?' active':''}" onclick="setAgentFilter('${a}')">${a} (${n})</button>`).join('');
+
+  // Cards
+  const list = document.getElementById('agent-list');
+  if (!data.length) {
+    list.innerHTML = `<div class="agent-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <h3>כל היירוטים טופלו!</h3>
+      <p>אין יירוטים ממתינים לטיפול כרגע</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(r => {
+    const bh = calcBusinessHours(new Date(r.created_at));
+    const isOverdue = bh > SLA_HOURS;
+    const days = Math.floor((Date.now()-new Date(r.created_at))/86400000);
+    const dateStr = new Date(r.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    let ageLabel = days===0?'היום':days===1?'אתמול':`${days} ימים`;
+    let ageCls = days<=1?'age-0':days===2?'age-2':days===3?'age-3':days<=5?'age-4':'age-5';
+    return `<div class="agent-card${isOverdue?' sla-card-row':''}" id="acard-${r.id}">
+      <div class="agent-card-top">
+        <div>
+          <div class="agent-name">${r.name} ${isOverdue?'<span class="agent-sla-warn">⏱ SLA</span>':''}</div>
+          <div class="agent-phone">${r.phone}</div>
+        </div>
+        <span class="age-badge ${ageCls}">${ageLabel}</span>
+      </div>
+      <div class="agent-meta">
+        <span class="b-act">${r.activity}</span>
+        <span style="font-size:12px;color:var(--text3)">${dateStr}</span>
+        ${r.note?`<span style="font-size:12px;color:var(--text2);background:var(--bg3);padding:2px 8px;border-radius:6px;border:1px solid var(--border2)">📝 ${r.note}</span>`:''}
+      </div>
+      <div class="agent-actions" id="aactions-${r.id}">
+        <a class="agent-btn call" href="tel:${r.phone.replace(/[\s\-]/g,'')}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.34 1.18 2 2 0 012.33 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.56 7.66a16 16 0 006.78 6.78l1.02-1.02a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+          התקשר
+        </a>
+        <button class="agent-btn done" onclick="agentStatus('${r.id}','טופל','${r.status}',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          טופל
+        </button>
+        <button class="agent-btn miss" onclick="agentStatus('${r.id}','אין מענה','${r.status}',this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.73 21a2 2 0 01-3.46 0l-8.2-14c-.89-1.53.3-3.44 2-3h18a2 2 0 012 3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          אין מענה
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setAgentFilter(f) { agentFilter=f; renderAgent(); }
+
+async function agentStatus(id, newStatus, oldStatus, btn) {
+  // Disable all buttons on card
+  const actions = document.getElementById('aactions-'+id);
+  actions.querySelectorAll('button').forEach(b=>b.disabled=true);
+
+  const rec = records.find(r=>r.id===id);
+  const now = new Date().toISOString();
+  const {error} = await sb.from('yirutim').update({status:newStatus, status_changed_at:now}).eq('id',id);
+  if (error) { toast('שגיאה בעדכון'); actions.querySelectorAll('button').forEach(b=>b.disabled=false); return; }
+
+  // Log history
+  if (rec) await sb.from('yirutim_history').insert([{
+    yirutim_id:id, phone:rec.phone, name:rec.name,
+    activity:rec.activity, old_status:oldStatus, new_status:newStatus, created_at:rec.created_at
+  }]);
+
+  // Show success overlay on card
+  const overlay = newStatus==='טופל'
+    ? `<div class="agent-done-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>טופל בהצלחה ✓</div>`
+    : `<div class="agent-miss-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.73 21a2 2 0 01-3.46 0l-8.2-14c-.89-1.53.3-3.44 2-3h18a2 2 0 012 3z"/></svg>סומן: אין מענה</div>`;
+  actions.innerHTML = overlay;
+
+  // Remove card after delay
+  setTimeout(()=>{
+    const card = document.getElementById('acard-'+id);
+    if (card) { card.style.transition='all 0.35s'; card.style.opacity='0'; card.style.maxHeight='0'; card.style.padding='0'; card.style.margin='0'; card.style.overflow='hidden'; }
+    setTimeout(()=>{ records=records.filter(r=>r.id!==id); renderAgent(); }, 380);
+  }, 1200);
 }
 
 // ---- SLA ----
@@ -462,16 +668,27 @@ function renderTable() {
   const overdueIds=new Set(getSlaOverdue().map(r=>r.id));
   const tbody=document.getElementById('tbl-body');
   if (!data.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
     return;
   }
   tbody.innerHTML=data.map((r,i)=>{
     const dt=new Date(r.created_at);
     const dateStr=dt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
     const isOverdue=overdueIds.has(r.id);
-    const badge=r.status==='טופל'?`<span class="badge b-done"><span class="badge-dot"></span>טופל</span>`:
-      r.status==='אין מענה'?`<span class="badge b-miss"><span class="badge-dot"></span>אין מענה</span>`:
-      `<span class="badge b-wait"><span class="badge-dot"></span>טרם טופל</span>`;
+
+    // colored select class
+    const selCls = r.status==='טופל'?'s-done':r.status==='אין מענה'?'s-miss':'s-wait';
+
+    // status timestamp
+    let tsHTML = '';
+    if (r.status_changed_at && r.status!=='טרם טופל') {
+      const tsDt = new Date(r.status_changed_at);
+      const tsStr = tsDt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
+                    tsDt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+      const tsCls = r.status==='טופל'?'ts-done':'ts-miss';
+      tsHTML = `<div class="status-ts ${tsCls}">${tsStr}</div>`;
+    }
+
     return `<tr${isOverdue?' class="sla-row"':''}>
       <td style="color:var(--text3);font-size:12px">${i+1}</td>
       <td style="font-weight:600">${r.name}${isOverdue?'<span class="sla-badge">⏱ SLA</span>':''}</td>
@@ -479,9 +696,12 @@ function renderTable() {
       <td><span class="b-act">${r.activity}</span></td>
       <td style="font-size:12px;color:var(--text3)">${dateStr}</td>
       <td>${ageBadge(r.created_at)}</td>
-      <td><select class="status-sel" onchange="changeStatus('${r.id}',this.value,'${r.status}')">
-        ${STATUSES.map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}
-      </select></td>
+      <td>
+        <select class="status-sel ${selCls}" onchange="changeStatus('${r.id}',this.value,'${r.status}',this)">
+          ${STATUSES.map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </td>
+      <td style="min-width:110px">${tsHTML}</td>
       <td><button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg></button></td>
     </tr>`;
   }).join('');
@@ -607,10 +827,11 @@ async function renderHistory() {
 }
 
 // ---- CRUD ----
-async function changeStatus(id, newVal, oldVal) {
+async function changeStatus(id, newVal, oldVal, selEl) {
   const rec = records.find(r=>r.id===id);
   if (!rec) return;
-  const {error} = await sb.from('yirutim').update({status:newVal}).eq('id',id);
+  const now = new Date().toISOString();
+  const {error} = await sb.from('yirutim').update({status:newVal, status_changed_at:now}).eq('id',id);
   if (error){toast('שגיאה בעדכון');return;}
   // log history
   await sb.from('yirutim_history').insert([{
@@ -619,7 +840,22 @@ async function changeStatus(id, newVal, oldVal) {
     created_at:rec.created_at
   }]);
   rec.status=newVal;
-  render();
+  rec.status_changed_at=now;
+  // update select color live without full re-render
+  if (selEl) {
+    selEl.className='status-sel '+(newVal==='טופל'?'s-done':newVal==='אין מענה'?'s-miss':'s-wait');
+    // update timestamp cell (next sibling td)
+    const tsTd = selEl.closest('td').nextElementSibling;
+    if (tsTd && newVal!=='טרם טופל') {
+      const tsDt = new Date(now);
+      const tsStr = tsDt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
+                    tsDt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+      const tsCls = newVal==='טופל'?'ts-done':'ts-miss';
+      tsTd.innerHTML = `<div class="status-ts ${tsCls}">${tsStr}</div>`;
+    } else if (tsTd) { tsTd.innerHTML=''; }
+  }
+  updateTabCount(); renderSLA();
+  if (currentTab==='status') renderStatusTab();
   toast('סטטוס עודכן ✓');
 }
 
