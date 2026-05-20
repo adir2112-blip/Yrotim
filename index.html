@@ -10,471 +10,205 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
-  --bg: #0f1117;
-  --bg2: #161b27;
-  --bg3: #1e2535;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.13);
-  --text: #eef0f6;
-  --text2: #8b93a8;
-  --text3: #555e72;
-  --accent: #4f7fff;
-  --accent2: #3a63e8;
-  --green: #2ecc8f;
-  --green-bg: rgba(46,204,143,0.1);
-  --amber: #f5a623;
-  --amber-bg: rgba(245,166,35,0.1);
-  --red: #e05c5c;
-  --red-bg: rgba(224,92,92,0.1);
-  --blue-bg: rgba(79,127,255,0.1);
-  --radius: 10px;
-  --radius-lg: 14px;
+  --bg:#f0f2f7;--bg2:#ffffff;--bg3:#f5f6fa;--bg4:#eaecf4;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --text:#1a1d2e;--text2:#5a607a;--text3:#9399b0;
+  --accent:#3a6bff;--accent2:#2554e8;--accent-bg:rgba(58,107,255,0.08);
+  --green:#17a96e;--green-bg:#eaf7f1;--green-border:rgba(23,169,110,0.25);
+  --gray:#7a8299;--gray-bg:#f0f1f5;--gray-border:rgba(122,130,153,0.3);
+  --amber:#d97706;--amber-bg:#fff8ec;
+  --red:#dc3545;--red-bg:#fff0f0;--red-border:rgba(220,53,69,0.25);
+  --sla-bg:#fff3cd;--sla-border:#f59e0b;--sla-text:#92400e;
+  --radius:10px;--radius-lg:14px;
+  --shadow:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,0.08),0 2px 4px rgba(0,0,0,0.04);
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 15px; }
-body {
-  font-family: 'Heebo', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  direction: rtl;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl;}
 
-/* TOP NAV */
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 2rem;
-  height: 58px;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text);
-}
-.nav-brand .dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-.nav-status {
-  font-size: 12px;
-  color: var(--text3);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:64px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
+.nav-brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:var(--text);}
+.nav-brand .dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-bg);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+.nav-status{font-size:13px;color:var(--text3);}
 
-/* TABS */
-.tabs-wrap {
-  padding: 0 2rem;
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  gap: 0;
-}
-.tab-btn {
-  padding: 14px 20px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text3);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: 'Heebo', sans-serif;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  white-space: nowrap;
-}
-.tab-btn:hover { color: var(--text2); }
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tab-btn .cnt {
-  font-size: 10px;
-  background: var(--blue-bg);
-  color: var(--accent);
-  padding: 1px 6px;
-  border-radius: 10px;
-  font-weight: 600;
-}
-.tab-btn.active .cnt { background: var(--accent); color: #fff; }
+.sla-banner{display:none;margin:0;padding:10px 2rem;background:var(--sla-bg);border-bottom:2px solid var(--sla-border);align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--sla-text);}
+.sla-banner.show{display:flex;}
+.sla-banner svg{width:18px;height:18px;flex-shrink:0;}
+.sla-detail{font-weight:400;margin-right:6px;color:var(--amber);}
 
-/* MAIN */
-.main { padding: 1.75rem 2rem; max-width: 1100px; margin: 0 auto; }
+.tabs-wrap{padding:0 2rem;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:0;overflow-x:auto;}
+.tab-btn{padding:16px 22px;font-size:15px;font-weight:500;color:var(--text3);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all 0.15s;font-family:'Heebo',sans-serif;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.tab-btn:hover{color:var(--text2);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab-btn .cnt{font-size:12px;background:var(--accent-bg);color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:700;}
+.tab-btn.active .cnt{background:var(--accent);color:#fff;}
 
-/* FILTER BAR */
-.filter-bar {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 1.5rem;
-  align-items: center;
-}
-.filter-chip {
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid var(--border2);
-  background: var(--bg3);
-  color: var(--text2);
-  transition: all 0.15s;
-  font-family: 'Heebo', sans-serif;
-}
-.filter-chip:hover { border-color: var(--accent); color: var(--accent); }
-.filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.main{padding:1.75rem 2rem;max-width:1120px;margin:0 auto;}
 
-/* SUMMARY CARDS */
-.summary-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  margin-bottom: 1.5rem;
-}
-.s-card {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.1rem;
-  transition: border-color 0.2s;
-}
-.s-card:hover { border-color: var(--border2); }
-.s-label {
-  font-size: 11px;
-  color: var(--text3);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.s-val {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 4px;
-}
-.s-val.blue { color: var(--accent); }
-.s-val.green { color: var(--green); }
-.s-val.amber { color: var(--amber); }
-.s-val.red { color: var(--red); }
-.s-val.gray { color: var(--text2); }
-.s-sub { font-size: 11px; color: var(--text3); }
-.prog-bar { height: 3px; background: var(--bg3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
-.prog-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.5s ease; }
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;align-items:center;}
+.filter-chip{padding:6px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);transition:all 0.15s;font-family:'Heebo',sans-serif;box-shadow:var(--shadow);}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent);}
+.filter-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
 
-/* ACTIONS */
-.actions-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid var(--border2);
-  background: var(--bg3);
-  color: var(--text);
-  transition: all 0.15s;
-  font-family: 'Heebo', sans-serif;
-}
-.btn:hover { background: var(--bg2); border-color: var(--border2); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.primary:hover { background: var(--accent2); }
-.btn.success { background: var(--green-bg); border-color: rgba(46,204,143,0.3); color: var(--green); }
-.btn.success:hover { background: rgba(46,204,143,0.18); }
-.btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.summary-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem;}
+.s-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.1rem 1.25rem;box-shadow:var(--shadow);transition:box-shadow 0.2s;}
+.s-card:hover{box-shadow:var(--shadow-md);}
+.s-card.sla-card{background:var(--sla-bg);border-color:var(--sla-border);}
+.s-label{font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+.s-val{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px;}
+.s-val.c-blue{color:var(--accent);}
+.s-val.c-green{color:var(--green);}
+.s-val.c-gray{color:var(--text2);}
+.s-val.c-sla{color:var(--sla-text);}
+.s-sub{font-size:11px;color:var(--text3);}
+.prog-bar{height:4px;background:var(--bg4);border-radius:2px;margin-top:10px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width 0.5s ease;}
 
-/* TABLE */
-.table-wrap {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-thead th {
-  padding: 11px 14px;
-  text-align: right;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid var(--border);
-}
-tbody td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--border);
-  color: var(--text);
-  vertical-align: middle;
-}
-tbody tr:last-child td { border-bottom: none; }
-tbody tr { transition: background 0.1s; }
-tbody tr:hover td { background: rgba(255,255,255,0.02); }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-.b-wait { background: var(--blue-bg); color: var(--accent); }
-.b-wait::before { background: var(--accent); }
-.b-done { background: var(--green-bg); color: var(--green); }
-.b-done::before { background: var(--green); }
-.b-miss { background: var(--amber-bg); color: var(--amber); }
-.b-miss::before { background: var(--amber); }
-.b-act { background: var(--bg3); color: var(--text2); font-size: 11px; padding: 2px 8px; border-radius: 20px; }
-.phone-cell { direction: ltr; text-align: right; font-family: 'Courier New', monospace; font-size: 12px; color: var(--text2); }
-.status-sel {
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  color: var(--text);
-  font-size: 12px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-family: 'Heebo', sans-serif;
-}
-.status-sel:focus { outline: none; border-color: var(--accent); }
-.del-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text3);
-  padding: 4px;
-  border-radius: 6px;
-  transition: all 0.15s;
-  display: flex;
-  align-items: center;
-}
-.del-btn:hover { color: var(--red); background: var(--red-bg); }
-.del-btn svg { width: 14px; height: 14px; }
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: var(--text3);
-  font-size: 13px;
-}
-.empty-state svg { width: 32px; height: 32px; margin-bottom: 10px; opacity: 0.3; }
+.actions-row{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius);font-size:14px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text);transition:all 0.15s;font-family:'Heebo',sans-serif;box-shadow:var(--shadow);}
+.btn:hover{background:var(--bg3);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(58,107,255,0.3);}
+.btn.primary:hover{background:var(--accent2);}
+.btn.success{background:var(--green-bg);border-color:var(--green-border);color:var(--green);}
+.btn.success:hover{background:#d4f0e5;}
+.btn svg{width:16px;height:16px;flex-shrink:0;}
 
-/* STATUS TAB TABLE */
-.status-table-wrap {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-}
-.st-row {
-  display: grid;
-  grid-template-columns: 1fr 90px 90px 90px 90px 160px;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  align-items: center;
-}
-.st-row:last-child { border-bottom: none; }
-.st-head { background: rgba(255,255,255,0.02); }
-.st-cell {
-  padding: 12px 16px;
-  font-size: 12px;
-}
-.st-head .st-cell {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--text3);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.activity-name { font-weight: 600; font-size: 13px; color: var(--text); }
-.old-date { font-size: 12px; color: var(--amber); font-weight: 500; }
-.old-date.fresh { color: var(--green); }
-.num-blue { color: var(--accent); font-weight: 700; font-size: 15px; }
-.num-green { color: var(--green); font-weight: 600; }
-.num-amber { color: var(--amber); font-weight: 600; }
-.mini-bar { display: flex; gap: 2px; align-items: center; }
-.mini-seg { height: 6px; border-radius: 3px; min-width: 4px; }
+/* SEARCH BAR */
+.search-bar{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;}
+.search-wrap{position:relative;flex:1;max-width:320px;}
+.search-wrap svg{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text3);pointer-events:none;}
+.search-input{width:100%;padding:9px 36px 9px 13px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);box-shadow:var(--shadow);}
+.search-input:focus{outline:none;border-color:var(--accent);}
+.search-input::placeholder{color:var(--text3);}
+.search-clear{background:none;border:none;cursor:pointer;color:var(--text3);font-size:18px;line-height:1;padding:2px 6px;border-radius:6px;}
+.search-clear:hover{color:var(--red);}
 
-/* MODAL */
-.overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.65);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-}
-.overlay.open { display: flex; }
-.modal {
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  padding: 1.75rem;
-  width: 380px;
-  max-width: 95vw;
-  animation: slideUp 0.2s ease;
-}
-@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
-.form-group { margin-bottom: 1rem; }
-.form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
-.form-group input,
-.form-group select {
-  width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: 13px;
-  padding: 9px 12px;
-  font-family: 'Heebo', sans-serif;
-  transition: border-color 0.15s;
-}
-.form-group input:focus,
-.form-group select:focus { outline: none; border-color: var(--accent); }
-.form-group input::placeholder { color: var(--text3); }
-.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.5rem; }
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;font-size:15px;}
+thead th{padding:13px 16px;text-align:right;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;background:var(--bg3);border-bottom:1px solid var(--border);}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr{transition:background 0.1s;}
+tbody tr:hover td{background:var(--bg3);}
 
-/* SETUP SCREEN */
-.setup-screen {
-  max-width: 540px;
-  margin: 4rem auto;
-  padding: 2rem;
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-}
-.setup-screen h2 { font-size: 18px; font-weight: 600; margin-bottom: 0.5rem; }
-.setup-screen p { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; line-height: 1.6; }
-.setup-screen .steps { margin-bottom: 1.5rem; }
-.step { display: flex; gap: 12px; margin-bottom: 1rem; align-items: flex-start; }
-.step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
-.step-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
-.step-text code { background: var(--bg3); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--accent); font-family: monospace; }
-.setup-input-row { display: flex; gap: 8px; }
-.setup-input-row input { flex: 1; }
-.error-msg { font-size: 12px; color: var(--red); margin-top: 8px; }
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid transparent;}
+.badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.b-wait{background:#f0f4ff;color:var(--accent);border-color:rgba(58,107,255,0.2);}
+.b-wait .badge-dot{background:var(--accent);}
+.b-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.b-done .badge-dot{background:var(--green);}
+.b-miss{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.b-miss .badge-dot{background:var(--gray);}
+.b-act{background:var(--bg3);color:var(--text2);font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500;border:1px solid var(--border2);}
 
-/* LOADING */
-.loading { text-align: center; padding: 3rem; color: var(--text3); font-size: 13px; }
-.spinner { width: 24px; height: 24px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.phone-cell{direction:ltr;text-align:right;font-family:'Courier New',monospace;font-size:13px;color:var(--text2);}
+.status-sel{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;padding:5px 10px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:500;}
+.status-sel:focus{outline:none;border-color:var(--accent);}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;border-radius:6px;transition:all 0.15s;display:flex;align-items:center;}
+.del-btn:hover{color:var(--red);background:var(--red-bg);}
+.del-btn svg{width:15px;height:15px;}
 
-/* TOAST */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius);
-  padding: 10px 18px;
-  font-size: 13px;
-  color: var(--text);
-  z-index: 999;
-  transition: transform 0.3s ease;
-  white-space: nowrap;
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
+/* SLA row */
+tr.sla-row td{background:#fffbf0 !important;}
+tr.sla-row:hover td{background:#fff5d6 !important;}
+.sla-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:var(--sla-bg);color:var(--sla-text);border:1px solid var(--sla-border);margin-right:6px;}
 
-@media (max-width: 680px) {
-  .nav { padding: 0 1rem; }
-  .tabs-wrap { padding: 0 0.5rem; overflow-x: auto; }
-  .main { padding: 1rem; }
-  .st-row { grid-template-columns: 1fr 70px 70px 70px; }
-  .st-row .st-cell:nth-child(4),
-  .st-row .st-cell:nth-child(5) { display: none; }
+/* AGE BADGES */
+.age-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid transparent;}
+.age-0{background:#eaf7f1;color:#17a96e;border-color:rgba(23,169,110,0.25);}
+.age-1{background:#f0f4ff;color:#3a6bff;border-color:rgba(58,107,255,0.2);}
+.age-2{background:#fff8ec;color:#d97706;border-color:rgba(217,119,6,0.3);}
+.age-3{background:#fff0e0;color:#c05621;border-color:rgba(192,86,33,0.35);}
+.age-4{background:#fff0f0;color:#dc3545;border-color:rgba(220,53,69,0.3);}
+.age-5{background:#f5e0e0;color:#a71d2a;border-color:rgba(167,29,42,0.4);}
+
+.empty-state{text-align:center;padding:3rem;color:var(--text3);font-size:14px;}
+.empty-state svg{width:36px;height:36px;margin-bottom:12px;opacity:0.25;display:block;margin-left:auto;margin-right:auto;}
+
+/* STATUS TAB */
+.status-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.5rem;}
+.st-row{display:grid;grid-template-columns:1.4fr 90px 90px 90px 80px 200px;border-bottom:1px solid var(--border);align-items:center;}
+.st-row:last-child{border-bottom:none;}
+.st-head{background:var(--bg3);}
+.st-cell{padding:14px 16px;font-size:15px;}
+.st-head .st-cell{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;}
+.activity-name{font-weight:600;font-size:15px;color:var(--text);}
+.num-blue{color:var(--accent);font-weight:700;font-size:18px;}
+.num-green{color:var(--green);font-weight:600;font-size:17px;}
+.num-gray{color:var(--gray);font-weight:600;font-size:17px;}
+.mini-bar{display:flex;gap:3px;align-items:center;margin-top:6px;}
+.mini-seg{height:5px;border-radius:3px;min-width:5px;}
+
+/* HISTORY TAB */
+.hist-search-wrap{margin-bottom:1.5rem;}
+.hist-result-info{font-size:13px;color:var(--text3);margin-bottom:1rem;}
+.hist-result-info strong{color:var(--text2);}
+
+/* OVERLAY / MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,18,36,0.45);z-index:200;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:2rem;width:400px;max-width:95vw;box-shadow:var(--shadow-md);animation:slideUp 0.2s ease;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:1.5rem;color:var(--text);}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.form-group input,.form-group select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;padding:10px 13px;font-family:'Heebo',sans-serif;transition:border-color 0.15s;}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent);background:var(--bg2);}
+.form-group input::placeholder{color:var(--text3);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;}
+
+.dup-modal{background:var(--bg2);border:1px solid var(--red-border);border-radius:var(--radius-lg);padding:2rem;width:420px;max-width:95vw;box-shadow:var(--shadow-md);animation:slideUp 0.2s ease;}
+.dup-modal h3{font-size:17px;font-weight:700;margin-bottom:0.75rem;color:var(--red);display:flex;align-items:center;gap:8px;}
+.dup-modal p{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:1rem;}
+.dup-info{background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius);padding:12px 14px;margin-bottom:1.25rem;}
+.dup-info div{font-size:13px;color:var(--text);margin-bottom:4px;}
+.dup-info div:last-child{margin-bottom:0;}
+.dup-info strong{color:var(--text2);font-weight:500;margin-left:4px;}
+
+.loading{text-align:center;padding:3rem;color:var(--text3);font-size:14px;}
+.spinner{width:26px;height:26px;border:3px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);border-radius:var(--radius);padding:11px 20px;font-size:14px;color:#fff;z-index:999;transition:transform 0.3s ease;white-space:nowrap;box-shadow:var(--shadow-md);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+@media(max-width:700px){
+  .nav{padding:0 1rem;}.main{padding:1rem;}
+  .st-row{grid-template-columns:1fr 70px 70px 70px;}
+  .st-row .st-cell:nth-child(4),.st-row .st-cell:nth-child(5){display:none;}
 }
 </style>
 </head>
 <body>
-
-<!-- SETUP SCREEN -->
-<div id="setup-screen" class="setup-screen" style="display:none">
-  <h2>🔗 חיבור ל-Supabase</h2>
-  <p>כדי לסנכרן בין כל המשתמשים, צריך לחבר את המערכת למסד הנתונים שלך.</p>
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-text">היכנס ל-<a href="https://supabase.com" target="_blank" style="color:var(--accent)">supabase.com</a> ← פתח את הפרויקט שלך ← לחץ על <code>SQL Editor</code> והרץ:</div>
-    </div>
-    <pre style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:11px;color:var(--text2);margin:0 0 1rem 0;overflow-x:auto;direction:ltr;text-align:left">create table yirutim (
-  id uuid default gen_random_uuid() primary key,
-  name text not null,
-  phone text not null,
-  activity text not null,
-  status text default 'טרם טופל',
-  note text default '',
-  created_at timestamptz default now()
-);
-alter table yirutim enable row level security;
-create policy "allow all" on yirutim for all using (true);</pre>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-text">לך ל-<code>Settings → API</code> — העתק את <code>Project URL</code> ואת <code>anon key</code></div>
-    </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-text">הזן אותם כאן ולחץ חבר:</div>
-    </div>
-  </div>
-  <div class="form-group"><label>Project URL</label><input id="sb-url" placeholder="https://xxxx.supabase.co" type="url"></div>
-  <div class="form-group"><label>Anon Key</label><input id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIs..."></div>
-  <div id="setup-error" class="error-msg" style="display:none"></div>
-  <div style="margin-top:1rem">
-    <button class="btn primary" onclick="connectSupabase()" id="connect-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-      חבר
-    </button>
-  </div>
-</div>
-
-<!-- MAIN APP -->
-<div id="app" style="display:none">
+<div id="app">
   <nav class="nav">
-    <div class="nav-brand">
-      <div class="dot"></div>
-      מערכת יירוטים
-    </div>
-    <div class="nav-status" id="sync-status">מחובר</div>
+    <div class="nav-brand"><div class="dot"></div>מערכת יירוטים</div>
+    <span class="nav-status" id="sync-status"></span>
   </nav>
-  
+
+  <div class="sla-banner" id="sla-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>התראת SLA:</span>
+    <span id="sla-banner-text"></span>
+  </div>
+
   <div class="tabs-wrap">
-    <button class="tab-btn active" onclick="switchMainTab('records')" id="tab-records">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-      ניהול יירוטים
-      <span class="cnt" id="tab-cnt">0</span>
+    <button class="tab-btn active" onclick="switchTab('records')" id="tab-records">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      ניהול יירוטים <span class="cnt" id="tab-cnt">0</span>
     </button>
-    <button class="tab-btn" onclick="switchMainTab('status')" id="tab-status">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      סטטוס פעילויות
+    <button class="tab-btn" onclick="switchTab('status')" id="tab-status">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      תמונת מצב פעילויות
+    </button>
+    <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      היסטוריית יירוטים
+    </button>
+    <button class="tab-btn" onclick="switchTab('daily')" id="tab-daily">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      דוח יומי
     </button>
   </div>
 
@@ -491,25 +225,27 @@ create policy "allow all" on yirutim for all using (true);</pre>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
         ייצוא ממתינים לאקסל
       </button>
-      <button class="btn" onclick="loadRecords()" title="רענן">
+      <button class="btn" onclick="loadRecords()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
         רענן
       </button>
     </div>
+    <div class="search-bar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="records-search" placeholder="חיפוש לפי מספר טלפון..." oninput="renderTable()">
+      </div>
+      <button class="search-clear" onclick="clearSearch('records-search')" title="נקה חיפוש">×</button>
+    </div>
     <div class="table-wrap">
       <div id="tbl-loading" class="loading"><div class="spinner"></div>טוען...</div>
       <table id="main-table" style="display:none">
-        <thead>
-          <tr>
-            <th style="width:36px">#</th>
-            <th>שם לקוח</th>
-            <th>טלפון</th>
-            <th>פעילות</th>
-            <th>תאריך</th>
-            <th>סטטוס</th>
-            <th style="width:40px"></th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th style="width:36px">#</th>
+          <th>שם לקוח</th><th>טלפון</th><th>פעילות</th>
+          <th>תאריך</th><th>גיל יירוט</th><th>סטטוס</th>
+          <th style="width:44px"></th>
+        </tr></thead>
         <tbody id="tbl-body"></tbody>
       </table>
     </div>
@@ -519,16 +255,67 @@ create policy "allow all" on yirutim for all using (true);</pre>
   <div id="view-status" class="main" style="display:none">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px;">
       <div>
-        <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:3px;">סטטוס פעילויות</div>
-        <div style="font-size:12px;color:var(--text3);">מבט על על כל הפעילויות ביחד</div>
+        <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;">תמונת מצב פעילויות</div>
+        <div style="font-size:14px;color:var(--text3);">סיכום כולל של כלל הפעילויות בזמן אמת</div>
       </div>
-      <div style="font-size:11px;color:var(--text3)" id="last-updated"></div>
+      <div style="font-size:13px;color:var(--text3)" id="last-updated"></div>
     </div>
-
     <div class="summary-row" id="status-summary"></div>
+    <div class="status-table-wrap" id="status-table"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+  </div>
 
-    <div class="status-table-wrap" id="status-table">
-      <div class="loading"><div class="spinner"></div>טוען...</div>
+  <!-- DAILY REPORT TAB -->
+  <div id="view-daily" class="main" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;">דוח יומי</div>
+        <div style="font-size:14px;color:var(--text3);">כמות יירוטים שנוספו וטופלו לפי תאריך ופעילות</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="font-size:14px;color:var(--text2);font-weight:500;">תאריך:</label>
+        <input type="date" id="daily-date" onchange="renderDaily()" style="padding:8px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);box-shadow:var(--shadow);">
+        <button class="btn" onclick="setDailyToday()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          היום
+        </button>
+        <button class="btn success" onclick="exportDailyExcel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          ייצוא לאקסל
+        </button>
+      </div>
+    </div>
+    <div class="summary-row" id="daily-summary"></div>
+    <div class="status-table-wrap" id="daily-table"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="view-history" class="main" style="display:none">
+    <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;">היסטוריית יירוטים</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:1.5rem;">חיפוש לפי מספר טלפון לצפייה בכל השינויים</div>
+    <div class="search-bar" style="margin-bottom:1rem;">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="hist-search" placeholder="הכנס מספר טלפון לחיפוש..." oninput="renderHistory()">
+      </div>
+      <button class="search-clear" onclick="clearSearch('hist-search');renderHistory();" title="נקה">×</button>
+    </div>
+    <div id="hist-result-info" class="hist-result-info" style="display:none"></div>
+    <div class="table-wrap" id="hist-table-wrap" style="display:none">
+      <table>
+        <thead><tr>
+          <th>תאריך יירוט</th><th>שם</th><th>טלפון</th>
+          <th>פעילות</th><th>סטטוס קודם</th><th>סטטוס חדש</th><th>תאריך עדכון</th>
+        </tr></thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
+    <div id="hist-empty" style="display:none" class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      לא נמצאו תוצאות
+    </div>
+    <div id="hist-placeholder" style="text-align:center;padding:3rem;color:var(--text3);font-size:14px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:36px;height:36px;margin:0 auto 12px;display:block;opacity:0.2;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      הכנס מספר טלפון לחיפוש היסטוריה
     </div>
   </div>
 </div>
@@ -541,11 +328,8 @@ create policy "allow all" on yirutim for all using (true);</pre>
     <div class="form-group"><label>טלפון</label><input id="f-phone" placeholder="05X-XXXXXXX" type="tel"></div>
     <div class="form-group"><label>פעילות</label>
       <select id="f-activity">
-        <option>כללית אקטיב</option>
-        <option>עובדים בריא</option>
-        <option>לאומית FIT</option>
-        <option>מעוף לעמית</option>
-        <option>מאוחדת</option>
+        <option>כללית אקטיב</option><option>עובדים בריא</option>
+        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option>
       </select>
     </div>
     <div class="form-group"><label>הערה (אופציונלי)</label><input id="f-note" placeholder="פרטים נוספים"></div>
@@ -556,237 +340,203 @@ create policy "allow all" on yirutim for all using (true);</pre>
   </div>
 </div>
 
+<!-- DUPLICATE MODAL -->
+<div class="overlay" id="modal-dup">
+  <div class="dup-modal">
+    <h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      כפילות — הטלפון כבר קיים
+    </h3>
+    <p>קיימת רשומה פתוחה (טרם טופלה) עם אותו מספר טלפון:</p>
+    <div class="dup-info" id="dup-info"></div>
+    <p style="font-size:13px;color:var(--text3)">יש לטפל ברשומה הקיימת תחילה.</p>
+    <div class="modal-actions"><button class="btn primary" onclick="closeDup()">הבנתי</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
+const SB_URL = 'https://qyqkimpaffhizouuwdko.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5cWtpbXBhZmZoaXpvdXV3ZGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODUxMzUsImV4cCI6MjA5NDg2MTEzNX0.zlIo9vTfWKhpSHeTHqRExTnWtAuJLsZjK_Hlii1Oa_c';
 const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת'];
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
-const SB_URL_KEY = 'sb_url';
-const SB_KEY_KEY = 'sb_key';
+const SLA_HOURS = 48;
 
-let sb = null;
-let records = [];
-let currentFilter = 'all';
-let currentMainTab = 'records';
-let realtimeSub = null;
+let sb, records = [], currentFilter = 'all', currentTab = 'records';
 
-// ---- INIT ----
 window.addEventListener('DOMContentLoaded', () => {
-  const url = localStorage.getItem(SB_URL_KEY);
-  const key = localStorage.getItem(SB_KEY_KEY);
-  if (url && key) {
-    initSupabase(url, key);
-  } else {
-    document.getElementById('setup-screen').style.display = 'block';
-  }
+  sb = window.supabase.createClient(SB_URL, SB_KEY);
+  loadRecords();
+  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
 });
 
-function initSupabase(url, key) {
-  sb = window.supabase.createClient(url, key);
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  loadRecords();
-  subscribeRealtime();
+async function loadRecords(silent=false) {
+  if (!silent) { document.getElementById('tbl-loading').style.display='block'; document.getElementById('main-table').style.display='none'; }
+  const {data} = await sb.from('yirutim').select('*').order('created_at',{ascending:false});
+  records = data||[];
+  document.getElementById('sync-status').textContent = 'עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('tbl-loading').style.display='none';
+  document.getElementById('main-table').style.display='table';
+  render();
 }
 
-async function connectSupabase() {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  const errEl = document.getElementById('setup-error');
-  errEl.style.display = 'none';
-  if (!url || !key) { errEl.textContent = 'יש למלא את שני השדות'; errEl.style.display = 'block'; return; }
-  document.getElementById('connect-btn').textContent = 'מתחבר...';
-  try {
-    const client = window.supabase.createClient(url, key);
-    const { error } = await client.from('yirutim').select('id').limit(1);
-    if (error) throw error;
-    localStorage.setItem(SB_URL_KEY, url);
-    localStorage.setItem(SB_KEY_KEY, key);
-    initSupabase(url, key);
-  } catch(e) {
-    errEl.textContent = 'שגיאת חיבור: ' + (e.message || 'בדוק שה-URL וה-Key נכונים, ושהטבלה נוצרה');
-    errEl.style.display = 'block';
-    document.getElementById('connect-btn').textContent = 'חבר';
+// ---- SLA ----
+function calcBusinessHours(from) {
+  const now = new Date();
+  let cursor = new Date(from), hours = 0;
+  while (cursor < now) {
+    const d = cursor.getDay();
+    if (d!==5 && d!==6) hours++;
+    cursor = new Date(cursor.getTime()+3600000);
   }
+  return hours;
+}
+function getSlaOverdue() {
+  return records.filter(r => r.status==='טרם טופל' && calcBusinessHours(new Date(r.created_at))>SLA_HOURS);
 }
 
-function subscribeRealtime() {
-  if (realtimeSub) sb.removeChannel(realtimeSub);
-  realtimeSub = sb.channel('yirutim-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'yirutim' }, () => {
-      loadRecords(true);
-    })
-    .subscribe();
-}
-
-// ---- DATA ----
-async function loadRecords(silent = false) {
-  if (!silent) {
-    document.getElementById('tbl-loading').style.display = 'block';
-    document.getElementById('main-table').style.display = 'none';
-  }
-  const { data, error } = await sb.from('yirutim').select('*').order('created_at', { ascending: false });
-  if (error) { toast('שגיאה בטעינה: ' + error.message); return; }
-  records = data || [];
-  document.getElementById('sync-status').textContent = 'מעודכן ' + new Date().toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
-  render();
-  document.getElementById('tbl-loading').style.display = 'none';
-  document.getElementById('main-table').style.display = 'table';
-}
-
-async function changeStatus(id, val) {
-  const { error } = await sb.from('yirutim').update({ status: val }).eq('id', id);
-  if (error) { toast('שגיאה בעדכון'); return; }
-  const r = records.find(r => r.id === id);
-  if (r) r.status = val;
-  render();
-}
-
-async function deleteRecord(id) {
-  if (!confirm('למחוק את הרשומה?')) return;
-  const { error } = await sb.from('yirutim').delete().eq('id', id);
-  if (error) { toast('שגיאה במחיקה'); return; }
-  records = records.filter(r => r.id !== id);
-  render();
-  toast('נמחק בהצלחה');
-}
-
-async function saveAdd() {
-  const name = document.getElementById('f-name').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
-  const activity = document.getElementById('f-activity').value;
-  const note = document.getElementById('f-note').value.trim();
-  if (!name || !phone) { toast('יש למלא שם וטלפון'); return; }
-  document.getElementById('save-btn').textContent = 'שומר...';
-  const { data, error } = await sb.from('yirutim').insert([{ name, phone, activity, note, status: 'טרם טופל' }]).select();
-  document.getElementById('save-btn').textContent = 'שמור';
-  if (error) { toast('שגיאה בשמירה: ' + error.message); return; }
-  closeAdd();
-  document.getElementById('f-name').value = '';
-  document.getElementById('f-phone').value = '';
-  document.getElementById('f-note').value = '';
-  records.unshift(data[0]);
-  render();
-  toast('יירוט נוסף בהצלחה ✓');
+// ---- AGE BADGE ----
+function ageBadge(createdAt) {
+  const days = Math.floor((Date.now()-new Date(createdAt))/86400000);
+  if (days===0) return `<span class="age-badge age-0">היום</span>`;
+  if (days===1) return `<span class="age-badge age-1">אתמול</span>`;
+  if (days===2) return `<span class="age-badge age-2">יומיים</span>`;
+  if (days===3) return `<span class="age-badge age-3">${days} ימים</span>`;
+  if (days<=5)  return `<span class="age-badge age-4">${days} ימים</span>`;
+  return `<span class="age-badge age-5">${days} ימים</span>`;
 }
 
 // ---- RENDER ----
 function filtered() {
-  return currentFilter === 'all' ? records : records.filter(r => r.activity === currentFilter);
+  const q = (document.getElementById('records-search')||{}).value||'';
+  let data = currentFilter==='all' ? records : records.filter(r=>r.activity===currentFilter);
+  if (q.trim()) data = data.filter(r=>r.phone.replace(/[\s\-]/g,'').includes(q.replace(/[\s\-]/g,'')));
+  return data;
 }
 
 function render() {
-  renderFilterBar();
-  renderSummary();
-  renderTable();
-  updateTabCount();
-  if (currentMainTab === 'status') renderStatusTab();
+  renderFilterBar(); renderSummary(); renderTable(); renderSLA(); updateTabCount();
+  if (currentTab==='status') renderStatusTab();
+  if (currentTab==='history') renderHistory();
+}
+
+function renderSLA() {
+  const overdue = getSlaOverdue();
+  const banner = document.getElementById('sla-banner');
+  if (overdue.length) {
+    banner.classList.add('show');
+    const names = overdue.slice(0,3).map(r=>r.name).join(', ');
+    const more = overdue.length>3 ? ` ועוד ${overdue.length-3}` : '';
+    document.getElementById('sla-banner-text').innerHTML =
+      `<span>${overdue.length} יירוטים ממתינים מעל 48 שעות עסקיות — </span><span class="sla-detail">${names}${more}</span>`;
+  } else banner.classList.remove('show');
 }
 
 function renderFilterBar() {
-  const bar = document.getElementById('filter-bar');
-  const all = [{ key: 'all', label: 'כל הפעילויות' }, ...ACTIVITIES.map(a => ({ key: a, label: a }))];
-  bar.innerHTML = all.map(({ key, label }) =>
-    `<button class="filter-chip${currentFilter === key ? ' active' : ''}" onclick="setFilter('${key}')">${label}</button>`
-  ).join('');
+  document.getElementById('filter-bar').innerHTML =
+    [{key:'all',label:'כל הפעילויות'},...ACTIVITIES.map(a=>({key:a,label:a}))]
+    .map(({key,label})=>`<button class="filter-chip${currentFilter===key?' active':''}" onclick="setFilter('${key}')">${label}</button>`).join('');
 }
-
-function setFilter(f) { currentFilter = f; render(); }
+function setFilter(f){currentFilter=f;render();}
 
 function renderSummary() {
-  const data = filtered();
-  const total = data.length;
-  const wait = data.filter(r => r.status === 'טרם טופל').length;
-  const done = data.filter(r => r.status === 'טופל').length;
-  const miss = data.filter(r => r.status === 'אין מענה').length;
-  const pct = total ? Math.round(done / total * 100) : 0;
-  document.getElementById('summary-row').innerHTML = `
-    <div class="s-card"><div class="s-label">סה"כ יירוטים</div><div class="s-val gray">${total}</div></div>
-    <div class="s-card"><div class="s-label">טרם טופלו</div><div class="s-val blue">${wait}</div><div class="s-sub">ממתינים לחזרה</div></div>
-    <div class="s-card"><div class="s-label">טופלו</div><div class="s-val green">${done}</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
-    <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val amber">${miss}</div></div>
-    <div class="s-card"><div class="s-label">אחוז טיפול</div><div class="s-val green">${pct}%</div><div class="s-sub">מכלל היירוטים</div></div>
+  const data=filtered(), total=data.length;
+  const wait=data.filter(r=>r.status==='טרם טופל').length;
+  const done=data.filter(r=>r.status==='טופל').length;
+  const miss=data.filter(r=>r.status==='אין מענה').length;
+  const pct=total?Math.round(done/total*100):0;
+  const overdue=getSlaOverdue().filter(r=>currentFilter==='all'||r.activity===currentFilter).length;
+  document.getElementById('summary-row').innerHTML=`
+    <div class="s-card"><div class="s-label">סה"כ יירוטים</div><div class="s-val c-gray">${total}</div></div>
+    <div class="s-card"><div class="s-label">טרם טופלו</div><div class="s-val c-blue">${wait}</div><div class="s-sub">ממתינים לחזרה</div></div>
+    <div class="s-card"><div class="s-label">טופלו</div><div class="s-val c-green">${done}</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+    <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val c-gray">${miss}</div></div>
+    <div class="s-card"><div class="s-label">אחוז טיפול</div><div class="s-val c-green">${pct}%</div></div>
+    ${overdue>0?`<div class="s-card sla-card"><div class="s-label">חריגת SLA</div><div class="s-val c-sla">${overdue}</div><div class="s-sub">מעל 48 שע' עסקיות</div></div>`:''}
   `;
 }
 
 function renderTable() {
-  const data = filtered();
-  const tbody = document.getElementById('tbl-body');
-  if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
+  const data=filtered();
+  const overdueIds=new Set(getSlaOverdue().map(r=>r.id));
+  const tbody=document.getElementById('tbl-body');
+  if (!data.length){
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
     return;
   }
-  tbody.innerHTML = data.map((r, i) => {
-    const dt = new Date(r.created_at);
-    const dateStr = dt.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'2-digit' });
-    return `<tr>
-      <td style="color:var(--text3);font-size:11px">${i+1}</td>
-      <td style="font-weight:500">${r.name}</td>
+  tbody.innerHTML=data.map((r,i)=>{
+    const dt=new Date(r.created_at);
+    const dateStr=dt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const isOverdue=overdueIds.has(r.id);
+    const badge=r.status==='טופל'?`<span class="badge b-done"><span class="badge-dot"></span>טופל</span>`:
+      r.status==='אין מענה'?`<span class="badge b-miss"><span class="badge-dot"></span>אין מענה</span>`:
+      `<span class="badge b-wait"><span class="badge-dot"></span>טרם טופל</span>`;
+    return `<tr${isOverdue?' class="sla-row"':''}>
+      <td style="color:var(--text3);font-size:12px">${i+1}</td>
+      <td style="font-weight:600">${r.name}${isOverdue?'<span class="sla-badge">⏱ SLA</span>':''}</td>
       <td><span class="phone-cell">${r.phone}</span></td>
       <td><span class="b-act">${r.activity}</span></td>
-      <td style="font-size:11px;color:var(--text3)">${dateStr}</td>
-      <td>
-        <select class="status-sel" onchange="changeStatus('${r.id}',this.value)">
-          ${STATUSES.map(s => `<option${s===r.status?' selected':''}>${s}</option>`).join('')}
-        </select>
-      </td>
-      <td>
-        <button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg>
-        </button>
-      </td>
+      <td style="font-size:12px;color:var(--text3)">${dateStr}</td>
+      <td>${ageBadge(r.created_at)}</td>
+      <td><select class="status-sel" onchange="changeStatus('${r.id}',this.value,'${r.status}')">
+        ${STATUSES.map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td><button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg></button></td>
     </tr>`;
   }).join('');
 }
 
-function updateTabCount() {
-  const wait = records.filter(r => r.status === 'טרם טופל').length;
-  document.getElementById('tab-cnt').textContent = wait;
+function updateTabCount(){
+  document.getElementById('tab-cnt').textContent=records.filter(r=>r.status==='טרם טופל').length;
 }
 
 // ---- STATUS TAB ----
 function renderStatusTab() {
-  const container = document.getElementById('status-table');
-  document.getElementById('last-updated').textContent = 'עודכן: ' + new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-
-  // global summary
-  const total = records.length;
-  const gWait = records.filter(r=>r.status==='טרם טופל').length;
-  const gDone = records.filter(r=>r.status==='טופל').length;
-  const gMiss = records.filter(r=>r.status==='אין מענה').length;
-  document.getElementById('status-summary').innerHTML = `
-    <div class="s-card"><div class="s-label">סה"כ כל הפעילויות</div><div class="s-val gray">${total}</div></div>
-    <div class="s-card"><div class="s-label">טרם טופלו (סה"כ)</div><div class="s-val blue">${gWait}</div></div>
-    <div class="s-card"><div class="s-label">טופלו (סה"כ)</div><div class="s-val green">${gDone}</div></div>
-    <div class="s-card"><div class="s-label">אין מענה (סה"כ)</div><div class="s-val amber">${gMiss}</div></div>
+  document.getElementById('last-updated').textContent='עודכן: '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+  const gWait=records.filter(r=>r.status==='טרם טופל').length;
+  const gDone=records.filter(r=>r.status==='טופל').length;
+  const gMiss=records.filter(r=>r.status==='אין מענה').length;
+  const gSla=getSlaOverdue().length;
+  document.getElementById('status-summary').innerHTML=`
+    <div class="s-card"><div class="s-label">סה"כ כל הפעילויות</div><div class="s-val c-gray">${records.length}</div></div>
+    <div class="s-card"><div class="s-label">טרם טופלו</div><div class="s-val c-blue">${gWait}</div></div>
+    <div class="s-card"><div class="s-label">טופלו</div><div class="s-val c-green">${gDone}</div></div>
+    <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val c-gray">${gMiss}</div></div>
+    ${gSla>0?`<div class="s-card sla-card"><div class="s-label">חריגת SLA</div><div class="s-val c-sla">${gSla}</div></div>`:''}
   `;
 
-  const rows = ACTIVITIES.map(act => {
-    const recs = records.filter(r => r.activity === act);
-    const wait = recs.filter(r => r.status === 'טרם טופל').length;
-    const done = recs.filter(r => r.status === 'טופל').length;
-    const miss = recs.filter(r => r.status === 'אין מענה').length;
-    const total = recs.length;
-    // oldest waiting
-    const waiting = recs.filter(r => r.status === 'טרם טופל');
-    let oldestStr = '—';
-    let isFresh = false;
+  const rows=ACTIVITIES.map(act=>{
+    const recs=records.filter(r=>r.activity===act);
+    const wait=recs.filter(r=>r.status==='טרם טופל').length;
+    const done=recs.filter(r=>r.status==='טופל').length;
+    const miss=recs.filter(r=>r.status==='אין מענה').length;
+    const total=recs.length;
+    const slaCount=getSlaOverdue().filter(r=>r.activity===act).length;
+    const waiting=recs.filter(r=>r.status==='טרם טופל');
+    let oldestHTML='<span style="color:var(--text3)">—</span>';
     if (waiting.length) {
-      const oldest = waiting.reduce((a,b) => new Date(a.created_at) < new Date(b.created_at) ? a : b);
-      const dt = new Date(oldest.created_at);
-      const diffDays = Math.floor((Date.now() - dt) / 86400000);
-      oldestStr = dt.toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit' });
-      if (diffDays === 0) { oldestStr += ' (היום)'; isFresh = true; }
-      else if (diffDays === 1) oldestStr += ' (אתמול)';
-      else oldestStr += ` (לפני ${diffDays} ימים)`;
+      const oldest=waiting.reduce((a,b)=>new Date(a.created_at)<new Date(b.created_at)?a:b);
+      const days=Math.floor((Date.now()-new Date(oldest.created_at))/86400000);
+      const bh=calcBusinessHours(new Date(oldest.created_at));
+      const dateStr=new Date(oldest.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit'});
+      let cls='age-0',label='';
+      if (days===0){cls='age-0';label='היום';}
+      else if (days===1){cls='age-1';label='אתמול';}
+      else if (days===2){cls='age-2';label='יומיים';}
+      else if (days===3){cls='age-3';label=`${days} ימים`;}
+      else if (days<=5){cls='age-4';label=`${days} ימים`;}
+      else{cls='age-5';label=`${days} ימים`;}
+      const slaWarn=bh>SLA_HOURS?' ⚠️':'';
+      oldestHTML=`<span class="age-badge ${cls}">${dateStr} · ${label}${slaWarn}</span>`;
     }
-    const pct = total ? Math.round(done/total*100) : 0;
-    const wPct = total ? Math.round(wait/total*100) : 0;
-    const mPct = total ? Math.round(miss/total*100) : 0;
-    return { act, wait, done, miss, total, oldestStr, isFresh, pct, wPct, mPct };
+    const pct=total?Math.round(done/total*100):0;
+    const wPct=total?Math.round(wait/total*100):0;
+    const mPct=total?Math.round(miss/total*100):0;
+    return {act,wait,done,miss,total,slaCount,oldestHTML,pct,wPct,mPct};
   });
 
-  container.innerHTML = `
+  document.getElementById('status-table').innerHTML=`
     <div class="st-row st-head">
       <div class="st-cell">פעילות</div>
       <div class="st-cell" style="text-align:center">טרם טופלו</div>
@@ -795,64 +545,260 @@ function renderStatusTab() {
       <div class="st-cell" style="text-align:center">סה"כ</div>
       <div class="st-cell">יירוט ישן ביותר</div>
     </div>
-    ${rows.map(r => `
+    ${rows.map(r=>`
     <div class="st-row">
       <div class="st-cell">
-        <div class="activity-name">${r.act}</div>
-        <div class="mini-bar" style="margin-top:6px">
-          <div class="mini-seg" style="width:${Math.max(r.wPct,4)}px;background:var(--accent);opacity:0.8" title="ממתינים"></div>
-          <div class="mini-seg" style="width:${Math.max(r.pct,4)}px;background:var(--green);opacity:0.8" title="טופלו"></div>
-          <div class="mini-seg" style="width:${Math.max(r.mPct,4)}px;background:var(--amber);opacity:0.8" title="אין מענה"></div>
+        <div class="activity-name">${r.act}${r.slaCount>0?` <span class="sla-badge">⏱ ${r.slaCount}</span>`:''}</div>
+        <div class="mini-bar">
+          <div class="mini-seg" style="width:${Math.max(r.wPct,5)}px;background:#3a6bff;opacity:0.7"></div>
+          <div class="mini-seg" style="width:${Math.max(r.pct,5)}px;background:#17a96e;opacity:0.7"></div>
+          <div class="mini-seg" style="width:${Math.max(r.mPct,5)}px;background:#9399b0;opacity:0.6"></div>
         </div>
       </div>
       <div class="st-cell" style="text-align:center"><span class="num-blue">${r.wait}</span></div>
       <div class="st-cell" style="text-align:center"><span class="num-green">${r.done}</span></div>
-      <div class="st-cell" style="text-align:center"><span class="num-amber">${r.miss}</span></div>
-      <div class="st-cell" style="text-align:center;color:var(--text2)">${r.total}</div>
-      <div class="st-cell"><span class="old-date${r.isFresh?' fresh':''}">${r.oldestStr}</span></div>
-    </div>
-    `).join('')}
+      <div class="st-cell" style="text-align:center"><span class="num-gray">${r.miss}</span></div>
+      <div class="st-cell" style="text-align:center;color:var(--text2);font-weight:500">${r.total}</div>
+      <div class="st-cell">${r.oldestHTML}</div>
+    </div>`).join('')}
   `;
 }
 
-// ---- TABS ----
-function switchMainTab(tab) {
-  currentMainTab = tab;
-  document.getElementById('view-records').style.display = tab === 'records' ? 'block' : 'none';
-  document.getElementById('view-status').style.display = tab === 'status' ? 'block' : 'none';
-  document.getElementById('tab-records').className = 'tab-btn' + (tab === 'records' ? ' active' : '');
-  document.getElementById('tab-status').className = 'tab-btn' + (tab === 'status' ? ' active' : '');
-  if (tab === 'status') renderStatusTab();
+// ---- HISTORY TAB ----
+async function renderHistory() {
+  const q=(document.getElementById('hist-search')||{}).value||'';
+  const placeholder=document.getElementById('hist-placeholder');
+  const wrap=document.getElementById('hist-table-wrap');
+  const info=document.getElementById('hist-result-info');
+  const empty=document.getElementById('hist-empty');
+  if (!q.trim()){
+    placeholder.style.display='block'; wrap.style.display='none';
+    info.style.display='none'; empty.style.display='none'; return;
+  }
+  placeholder.style.display='none';
+  const clean=q.replace(/[\s\-]/g,'');
+  const {data} = await sb.from('yirutim_history').select('*')
+    .filter('phone','ilike',`%${clean}%`)
+    .order('changed_at',{ascending:false});
+  const rows=data||[];
+  if (!rows.length){
+    wrap.style.display='none'; empty.style.display='block'; info.style.display='none'; return;
+  }
+  empty.style.display='none'; wrap.style.display='block';
+  info.style.display='block';
+  info.innerHTML=`נמצאו <strong>${rows.length}</strong> רשומות היסטוריה עבור <strong>${q}</strong>`;
+  const statusBadge=s=>s==='טופל'?`<span class="badge b-done"><span class="badge-dot"></span>טופל</span>`:
+    s==='אין מענה'?`<span class="badge b-miss"><span class="badge-dot"></span>אין מענה</span>`:
+    s?`<span class="badge b-wait"><span class="badge-dot"></span>${s}</span>`:`<span style="color:var(--text3)">—</span>`;
+  document.getElementById('hist-body').innerHTML=rows.map(r=>{
+    const created=r.created_at?new Date(r.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+    const changed=new Date(r.changed_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
+      new Date(r.changed_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+    return `<tr>
+      <td style="font-size:12px;color:var(--text3)">${created}</td>
+      <td style="font-weight:600">${r.name||'—'}</td>
+      <td><span class="phone-cell">${r.phone}</span></td>
+      <td><span class="b-act">${r.activity||'—'}</span></td>
+      <td>${statusBadge(r.old_status)}</td>
+      <td>${statusBadge(r.new_status)}</td>
+      <td style="font-size:12px;color:var(--text2)">${changed}</td>
+    </tr>`;
+  }).join('');
 }
 
-// ---- MODAL ----
-function openAdd() { document.getElementById('modal-add').classList.add('open'); }
-function closeAdd() { document.getElementById('modal-add').classList.remove('open'); }
-document.getElementById('modal-add').addEventListener('click', e => { if (e.target === e.currentTarget) closeAdd(); });
+// ---- CRUD ----
+async function changeStatus(id, newVal, oldVal) {
+  const rec = records.find(r=>r.id===id);
+  if (!rec) return;
+  const {error} = await sb.from('yirutim').update({status:newVal}).eq('id',id);
+  if (error){toast('שגיאה בעדכון');return;}
+  // log history
+  await sb.from('yirutim_history').insert([{
+    yirutim_id:id, phone:rec.phone, name:rec.name,
+    activity:rec.activity, old_status:oldVal, new_status:newVal,
+    created_at:rec.created_at
+  }]);
+  rec.status=newVal;
+  render();
+  toast('סטטוס עודכן ✓');
+}
 
-// ---- EXPORT ----
-function exportExcel() {
-  const activity = currentFilter === 'all' ? 'כל הפעילויות' : currentFilter;
-  const data = filtered().filter(r => r.status === 'טרם טופל');
-  if (!data.length) { toast('אין ממתינים לייצוא בפעילות זו'); return; }
-  const rows = data.map((r, i) => {
-    const dt = new Date(r.created_at);
-    return { '#': i+1, 'שם לקוח': r.name, 'טלפון': r.phone, 'פעילות': r.activity, 'תאריך': dt.toLocaleDateString('he-IL'), 'הערה': r.note||'' };
+async function deleteRecord(id) {
+  if (!confirm('למחוק את הרשומה?')) return;
+  await sb.from('yirutim_history').delete().eq('yirutim_id',id);
+  const {error}=await sb.from('yirutim').delete().eq('id',id);
+  if (error){toast('שגיאה במחיקה');return;}
+  records=records.filter(r=>r.id!==id);
+  render(); toast('נמחק בהצלחה');
+}
+
+async function saveAdd() {
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const activity=document.getElementById('f-activity').value;
+  const note=document.getElementById('f-note').value.trim();
+  if (!name||!phone){toast('יש למלא שם וטלפון');return;}
+  const clean=phone.replace(/[\s\-]/g,'');
+  const dup=records.find(r=>r.status==='טרם טופל'&&r.phone.replace(/[\s\-]/g,'')=== clean);
+  if (dup){
+    const dt=new Date(dup.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    document.getElementById('dup-info').innerHTML=`<div><strong>שם:</strong> ${dup.name}</div><div><strong>טלפון:</strong> ${dup.phone}</div><div><strong>פעילות:</strong> ${dup.activity}</div><div><strong>תאריך:</strong> ${dt}</div>`;
+    closeAdd(); document.getElementById('modal-dup').classList.add('open'); return;
+  }
+  document.getElementById('save-btn').textContent='שומר...';
+  const {data,error}=await sb.from('yirutim').insert([{name,phone,activity,note,status:'טרם טופל'}]).select();
+  document.getElementById('save-btn').textContent='שמור';
+  if (error){toast('שגיאה: '+error.message);return;}
+  // log creation in history
+  await sb.from('yirutim_history').insert([{
+    yirutim_id:data[0].id, phone, name, activity,
+    old_status:null, new_status:'טרם טופל', created_at:data[0].created_at
+  }]);
+  closeAdd();
+  document.getElementById('f-name').value='';
+  document.getElementById('f-phone').value='';
+  document.getElementById('f-note').value='';
+  records.unshift(data[0]);
+  render(); toast('יירוט נוסף בהצלחה ✓');
+}
+
+// ---- TABS ----
+function switchTab(tab) {
+  currentTab=tab;
+  ['records','status','history','daily'].forEach(t=>{
+    document.getElementById('view-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
   });
-  const ws = XLSX.utils.json_to_sheet(rows, { header: ['#','שם לקוח','טלפון','פעילות','תאריך','הערה'] });
-  ws['!cols'] = [{wch:4},{wch:22},{wch:15},{wch:16},{wch:12},{wch:28}];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'ממתינים');
-  XLSX.writeFile(wb, `ממתינים_${activity}_${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.xlsx`);
+  if (tab==='status') renderStatusTab();
+  if (tab==='history') renderHistory();
+  if (tab==='daily') { setDailyToday(); }
+}
+
+// ---- UTILS ----
+function openAdd(){document.getElementById('modal-add').classList.add('open');}
+function closeAdd(){document.getElementById('modal-add').classList.remove('open');}
+function closeDup(){document.getElementById('modal-dup').classList.remove('open');}
+document.getElementById('modal-add').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAdd();});
+document.getElementById('modal-dup').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDup();});
+function clearSearch(id){document.getElementById(id).value='';renderTable();}
+
+function exportExcel(){
+  const activity=currentFilter==='all'?'כל הפעילויות':currentFilter;
+  const data=filtered().filter(r=>r.status==='טרם טופל');
+  if (!data.length){toast('אין ממתינים לייצוא');return;}
+  const rows=data.map((r,i)=>{
+    const dt=new Date(r.created_at);
+    const bh=calcBusinessHours(dt);
+    return {'#':i+1,'שם לקוח':r.name,'טלפון':r.phone,'פעילות':r.activity,'תאריך':dt.toLocaleDateString('he-IL'),'שעות עסקיות':bh,'חריגת SLA':bh>SLA_HOURS?'כן':'לא','הערה':r.note||''};
+  });
+  const ws=XLSX.utils.json_to_sheet(rows,{header:['#','שם לקוח','טלפון','פעילות','תאריך','שעות עסקיות','חריגת SLA','הערה']});
+  ws['!cols']=[{wch:4},{wch:22},{wch:15},{wch:16},{wch:12},{wch:14},{wch:12},{wch:28}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'ממתינים');
+  XLSX.writeFile(wb,`ממתינים_${activity}_${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.xlsx`);
   toast('הורד בהצלחה ✓');
 }
 
-// ---- TOAST ----
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
+// ---- DAILY REPORT ----
+function setDailyToday() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('daily-date').value = today;
+  renderDaily();
+}
+
+async function renderDaily() {
+  const dateVal = document.getElementById('daily-date').value;
+  if (!dateVal) return;
+  const dateLabel = new Date(dateVal).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // Fetch added on this date from yirutim table
+  const dayStart = dateVal + 'T00:00:00.000Z';
+  const dayEnd   = dateVal + 'T23:59:59.999Z';
+
+  const [{data: added}, {data: resolved}] = await Promise.all([
+    sb.from('yirutim').select('*').gte('created_at', dayStart).lte('created_at', dayEnd),
+    sb.from('yirutim_history').select('*')
+      .gte('changed_at', dayStart).lte('changed_at', dayEnd)
+      .neq('new_status','טרם טופל')
+  ]);
+
+  const addedRows = added || [];
+  const resolvedRows = resolved || [];
+
+  // Summary cards
+  const totalAdded = addedRows.length;
+  const totalResolved = resolvedRows.filter(r=>r.new_status==='טופל').length;
+  const totalMiss = resolvedRows.filter(r=>r.new_status==='אין מענה').length;
+  document.getElementById('daily-summary').innerHTML = `
+    <div class="s-card"><div class="s-label">תאריך</div><div class="s-val c-gray" style="font-size:20px">${dateLabel}</div></div>
+    <div class="s-card"><div class="s-label">יירוטים שנוספו</div><div class="s-val c-blue">${totalAdded}</div><div class="s-sub">הוכנסו למערכת</div></div>
+    <div class="s-card"><div class="s-label">טופלו</div><div class="s-val c-green">${totalResolved}</div><div class="s-sub">קיבלו מענה</div></div>
+    <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val c-gray">${totalMiss}</div></div>
+    <div class="s-card"><div class="s-label">סה"כ פעולות</div><div class="s-val c-gray">${totalAdded+totalResolved+totalMiss}</div></div>
+  `;
+
+  // Per-activity breakdown
+  const rows = ACTIVITIES.map(act => {
+    const a = addedRows.filter(r=>r.activity===act).length;
+    const d = resolvedRows.filter(r=>r.activity===act && r.new_status==='טופל').length;
+    const m = resolvedRows.filter(r=>r.activity===act && r.new_status==='אין מענה').length;
+    return {act, added:a, done:d, miss:m, total:a+d+m};
+  });
+
+  document.getElementById('daily-table').innerHTML = `
+    <div class="st-row st-head" style="grid-template-columns:1.6fr 100px 100px 100px 100px">
+      <div class="st-cell">פעילות</div>
+      <div class="st-cell" style="text-align:center">יירוטים שנוספו</div>
+      <div class="st-cell" style="text-align:center">טופלו</div>
+      <div class="st-cell" style="text-align:center">אין מענה</div>
+      <div class="st-cell" style="text-align:center">סה"כ פעולות</div>
+    </div>
+    ${rows.map(r=>`
+    <div class="st-row" style="grid-template-columns:1.6fr 100px 100px 100px 100px">
+      <div class="st-cell"><div class="activity-name">${r.act}</div></div>
+      <div class="st-cell" style="text-align:center"><span class="num-blue">${r.added}</span></div>
+      <div class="st-cell" style="text-align:center"><span class="num-green">${r.done}</span></div>
+      <div class="st-cell" style="text-align:center"><span class="num-gray">${r.miss}</span></div>
+      <div class="st-cell" style="text-align:center;font-weight:600;color:var(--text2)">${r.total}</div>
+    </div>`).join('')}
+    <div class="st-row" style="grid-template-columns:1.6fr 100px 100px 100px 100px;background:var(--bg3)">
+      <div class="st-cell" style="font-weight:700;color:var(--text)">סה"כ</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--accent);font-size:17px">${rows.reduce((s,r)=>s+r.added,0)}</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--green);font-size:17px">${rows.reduce((s,r)=>s+r.done,0)}</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--gray);font-size:17px">${rows.reduce((s,r)=>s+r.miss,0)}</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--text2);font-size:17px">${rows.reduce((s,r)=>s+r.total,0)}</div>
+    </div>
+  `;
+}
+
+function exportDailyExcel() {
+  const dateVal = document.getElementById('daily-date').value;
+  if (!dateVal) { toast('בחר תאריך תחילה'); return; }
+  const dateLabel = new Date(dateVal).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const dayStart = dateVal+'T00:00:00.000Z', dayEnd = dateVal+'T23:59:59.999Z';
+  Promise.all([
+    sb.from('yirutim').select('*').gte('created_at',dayStart).lte('created_at',dayEnd),
+    sb.from('yirutim_history').select('*').gte('changed_at',dayStart).lte('changed_at',dayEnd).neq('new_status','טרם טופל')
+  ]).then(([{data:added},{data:resolved}])=>{
+    const rows = ACTIVITIES.map((act,i)=>({
+      '#':i+1,'פעילות':act,
+      'יירוטים שנוספו':(added||[]).filter(r=>r.activity===act).length,
+      'טופלו':(resolved||[]).filter(r=>r.activity===act&&r.new_status==='טופל').length,
+      'אין מענה':(resolved||[]).filter(r=>r.activity===act&&r.new_status==='אין מענה').length
+    }));
+    const ws=XLSX.utils.json_to_sheet(rows,{header:['#','פעילות','יירוטים שנוספו','טופלו','אין מענה']});
+    ws['!cols']=[{wch:4},{wch:20},{wch:16},{wch:12},{wch:12}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,`דוח ${dateLabel}`);
+    XLSX.writeFile(wb,`דוח_יומי_${dateVal}.xlsx`);
+    toast('הורד בהצלחה ✓');
+  });
+}
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3200);
 }
 </script>
 </body>
