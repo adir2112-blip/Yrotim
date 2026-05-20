@@ -105,12 +105,14 @@ tbody tr:hover td{background:var(--bg3);}
 
 .phone-cell{direction:ltr;text-align:right;font-family:'Courier New',monospace;font-size:13px;color:var(--text2);}
 
-/* STATUS SELECT — colored */
-.status-sel{border:1.5px solid var(--border2);border-radius:8px;font-size:13px;padding:5px 10px;cursor:pointer;font-family:'Heebo',sans-serif;font-weight:600;transition:all 0.15s;}
-.status-sel:focus{outline:none;}
-.status-sel.s-wait{background:#f8f9ff;color:var(--accent);border-color:rgba(58,107,255,0.35);}
-.status-sel.s-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
-.status-sel.s-miss{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+/* STATUS PICKER — visual buttons instead of select */
+.status-picker{display:flex;gap:4px;flex-wrap:nowrap;}
+.sp-btn{padding:5px 10px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid transparent;font-family:'Heebo',sans-serif;transition:all 0.15s;white-space:nowrap;opacity:0.45;}
+.sp-btn:hover{opacity:0.75;}
+.sp-btn.active{opacity:1;box-shadow:0 1px 4px rgba(0,0,0,0.12);}
+.sp-wait{background:#f0f4ff;color:var(--accent);border-color:rgba(58,107,255,0.3);}
+.sp-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.sp-miss{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
 
 /* STATUS TIMESTAMP */
 .status-ts{font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;}
@@ -295,6 +297,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
       </div>
       <button class="search-clear" onclick="clearSearch('records-search')" title="נקה חיפוש">×</button>
     </div>
+    <div class="filter-bar" id="status-filter-bar"></div>
     <div class="table-wrap">
       <div id="tbl-loading" class="loading"><div class="spinner"></div>טוען...</div>
       <table id="main-table" style="display:none">
@@ -302,7 +305,6 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
           <th style="width:36px">#</th>
           <th>שם לקוח</th><th>טלפון</th><th>פעילות</th>
           <th>תאריך</th><th>גיל יירוט</th><th>סטטוס</th>
-          <th>עדכון אחרון</th>
           <th style="width:44px"></th>
         </tr></thead>
         <tbody id="tbl-body"></tbody>
@@ -443,7 +445,7 @@ const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
 const IS_AGENT = new URLSearchParams(window.location.search).get('agent') === '1';
 
-let sb, records = [], currentFilter = 'all', currentTab = 'records';
+let sb, records = [], currentFilter = 'all', currentTab = 'records', statusFilter = 'all';
 let agentFilter = 'all';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -453,9 +455,11 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('agent-app').style.display = 'block';
     loadAgentRecords();
     sb.channel('rt-agent').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadAgentRecords(true)).subscribe();
+    setInterval(()=>loadAgentRecords(true), 60000);
   } else {
     loadRecords();
     sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
+    setInterval(()=>loadRecords(true), 60000);
   }
 });
 
@@ -617,15 +621,33 @@ function ageBadge(createdAt) {
 function filtered() {
   const q = (document.getElementById('records-search')||{}).value||'';
   let data = currentFilter==='all' ? records : records.filter(r=>r.activity===currentFilter);
+  if (statusFilter !== 'all') data = data.filter(r=>r.status===statusFilter);
   if (q.trim()) data = data.filter(r=>r.phone.replace(/[\s\-]/g,'').includes(q.replace(/[\s\-]/g,'')));
   return data;
 }
 
 function render() {
-  renderFilterBar(); renderSummary(); renderTable(); renderSLA(); updateTabCount();
+  renderFilterBar(); renderStatusFilterBar(); renderSummary(); renderTable(); renderSLA(); updateTabCount();
   if (currentTab==='status') renderStatusTab();
   if (currentTab==='history') renderHistory();
 }
+
+function renderStatusFilterBar() {
+  const wait = records.filter(r=>r.status==='טרם טופל').length;
+  const done = records.filter(r=>r.status==='טופל').length;
+  const miss = records.filter(r=>r.status==='אין מענה').length;
+  const opts = [
+    {key:'all', label:'כל הסטטוסים'},
+    {key:'טרם טופל', label:`טרם טופל (${wait})`, cls:'sp-wait'},
+    {key:'טופל',     label:`טופל (${done})`,     cls:'sp-done'},
+    {key:'אין מענה', label:`אין מענה (${miss})`,  cls:'sp-miss'},
+  ];
+  const bar = document.getElementById('status-filter-bar');
+  if (bar) bar.innerHTML = opts.map(o=>
+    `<button class="filter-chip${statusFilter===o.key?' active':''}" onclick="setStatusFilter('${o.key}')">${o.label}</button>`
+  ).join('');
+}
+function setStatusFilter(f){ statusFilter=f; render(); }
 
 function renderSLA() {
   const overdue = getSlaOverdue();
@@ -663,32 +685,36 @@ function renderSummary() {
   `;
 }
 
+function statusPicker(r) {
+  const ts = r.status_changed_at && r.status!=='טרם טופל'
+    ? (() => {
+        const d = new Date(r.status_changed_at);
+        const s = d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+        return `<div class="status-ts ${r.status==='טופל'?'ts-done':'ts-miss'}" id="ts-${r.id}">${s}</div>`;
+      })()
+    : `<div class="status-ts" id="ts-${r.id}"></div>`;
+  return `<div>
+    <div class="status-picker">
+      <button class="sp-btn sp-wait${r.status==='טרם טופל'?' active':''}" onclick="changeStatus('${r.id}','טרם טופל','${r.status}',this)">טרם טופל</button>
+      <button class="sp-btn sp-done${r.status==='טופל'?' active':''}" onclick="changeStatus('${r.id}','טופל','${r.status}',this)">טופל</button>
+      <button class="sp-btn sp-miss${r.status==='אין מענה'?' active':''}" onclick="changeStatus('${r.id}','אין מענה','${r.status}',this)">אין מענה</button>
+    </div>
+    ${ts}
+  </div>`;
+}
+
 function renderTable() {
   const data=filtered();
   const overdueIds=new Set(getSlaOverdue().map(r=>r.id));
   const tbody=document.getElementById('tbl-body');
   if (!data.length){
-    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
     return;
   }
   tbody.innerHTML=data.map((r,i)=>{
     const dt=new Date(r.created_at);
     const dateStr=dt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
     const isOverdue=overdueIds.has(r.id);
-
-    // colored select class
-    const selCls = r.status==='טופל'?'s-done':r.status==='אין מענה'?'s-miss':'s-wait';
-
-    // status timestamp
-    let tsHTML = '';
-    if (r.status_changed_at && r.status!=='טרם טופל') {
-      const tsDt = new Date(r.status_changed_at);
-      const tsStr = tsDt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
-                    tsDt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-      const tsCls = r.status==='טופל'?'ts-done':'ts-miss';
-      tsHTML = `<div class="status-ts ${tsCls}">${tsStr}</div>`;
-    }
-
     return `<tr${isOverdue?' class="sla-row"':''}>
       <td style="color:var(--text3);font-size:12px">${i+1}</td>
       <td style="font-weight:600">${r.name}${isOverdue?'<span class="sla-badge">⏱ SLA</span>':''}</td>
@@ -696,12 +722,7 @@ function renderTable() {
       <td><span class="b-act">${r.activity}</span></td>
       <td style="font-size:12px;color:var(--text3)">${dateStr}</td>
       <td>${ageBadge(r.created_at)}</td>
-      <td>
-        <select class="status-sel ${selCls}" onchange="changeStatus('${r.id}',this.value,'${r.status}',this)">
-          ${STATUSES.map(s=>`<option${s===r.status?' selected':''}>${s}</option>`).join('')}
-        </select>
-      </td>
-      <td style="min-width:110px">${tsHTML}</td>
+      <td>${statusPicker(r)}</td>
       <td><button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg></button></td>
     </tr>`;
   }).join('');
@@ -797,37 +818,74 @@ async function renderHistory() {
   }
   placeholder.style.display='none';
   const clean=q.replace(/[\s\-]/g,'');
-  const {data} = await sb.from('yirutim_history').select('*')
-    .filter('phone','ilike',`%${clean}%`)
+
+  // Search history table
+  const {data:histData} = await sb.from('yirutim_history').select('*')
     .order('changed_at',{ascending:false});
-  const rows=data||[];
-  if (!rows.length){
-    wrap.style.display='none'; empty.style.display='block'; info.style.display='none'; return;
-  }
-  empty.style.display='none'; wrap.style.display='block';
-  info.style.display='block';
-  info.innerHTML=`נמצאו <strong>${rows.length}</strong> רשומות היסטוריה עבור <strong>${q}</strong>`;
+  const histRows = (histData||[]).filter(r => r.phone && r.phone.replace(/[\s\-]/g,'').includes(clean));
+
+  // Also search main yirutim table for matching records (as base info)
+  const {data:mainData} = await sb.from('yirutim').select('*').order('created_at',{ascending:false});
+  const mainRows = (mainData||[]).filter(r => r.phone && r.phone.replace(/[\s\-]/g,'').includes(clean));
+
   const statusBadge=s=>s==='טופל'?`<span class="badge b-done"><span class="badge-dot"></span>טופל</span>`:
     s==='אין מענה'?`<span class="badge b-miss"><span class="badge-dot"></span>אין מענה</span>`:
     s?`<span class="badge b-wait"><span class="badge-dot"></span>${s}</span>`:`<span style="color:var(--text3)">—</span>`;
-  document.getElementById('hist-body').innerHTML=rows.map(r=>{
-    const created=r.created_at?new Date(r.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
-    const changed=new Date(r.changed_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
-      new Date(r.changed_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-    return `<tr>
-      <td style="font-size:12px;color:var(--text3)">${created}</td>
-      <td style="font-weight:600">${r.name||'—'}</td>
-      <td><span class="phone-cell">${r.phone}</span></td>
-      <td><span class="b-act">${r.activity||'—'}</span></td>
-      <td>${statusBadge(r.old_status)}</td>
-      <td>${statusBadge(r.new_status)}</td>
-      <td style="font-size:12px;color:var(--text2)">${changed}</td>
-    </tr>`;
-  }).join('');
+
+  if (!histRows.length && !mainRows.length){
+    wrap.style.display='none'; empty.style.display='block'; info.style.display='none'; return;
+  }
+
+  empty.style.display='none'; wrap.style.display='block'; info.style.display='block';
+
+  // Build combined display: history rows first, then main records that have no history
+  let allRows = '';
+
+  if (histRows.length) {
+    allRows += histRows.map(r=>{
+      const created=r.created_at?new Date(r.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—';
+      const changed=new Date(r.changed_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
+        new Date(r.changed_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+      return `<tr>
+        <td style="font-size:12px;color:var(--text3)">${created}</td>
+        <td style="font-weight:600">${r.name||'—'}</td>
+        <td><span class="phone-cell">${r.phone}</span></td>
+        <td><span class="b-act">${r.activity||'—'}</span></td>
+        <td>${statusBadge(r.old_status)}</td>
+        <td>${statusBadge(r.new_status)}</td>
+        <td style="font-size:12px;color:var(--text2);font-weight:500">${changed}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // If no history rows but found in main table — show current state
+  if (!histRows.length && mainRows.length) {
+    allRows += mainRows.map(r=>{
+      const created=new Date(r.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
+      const changedStr = r.status_changed_at
+        ? new Date(r.status_changed_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
+          new Date(r.status_changed_at).toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'})
+        : '—';
+      return `<tr>
+        <td style="font-size:12px;color:var(--text3)">${created}</td>
+        <td style="font-weight:600">${r.name}</td>
+        <td><span class="phone-cell">${r.phone}</span></td>
+        <td><span class="b-act">${r.activity}</span></td>
+        <td><span style="color:var(--text3)">—</span></td>
+        <td>${statusBadge(r.status)}</td>
+        <td style="font-size:12px;color:var(--text2);font-weight:500">${changedStr}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const total = histRows.length || mainRows.length;
+  info.innerHTML=`נמצאו <strong>${total}</strong> רשומות עבור <strong>${q}</strong>${!histRows.length?' (מוצג סטטוס נוכחי — היסטוריה תיאסף משינויים עתידיים)':''}`;
+  document.getElementById('hist-body').innerHTML = allRows;
 }
 
 // ---- CRUD ----
-async function changeStatus(id, newVal, oldVal, selEl) {
+async function changeStatus(id, newVal, oldVal, btn) {
+  if (newVal === oldVal) return;
   const rec = records.find(r=>r.id===id);
   if (!rec) return;
   const now = new Date().toISOString();
@@ -841,18 +899,25 @@ async function changeStatus(id, newVal, oldVal, selEl) {
   }]);
   rec.status=newVal;
   rec.status_changed_at=now;
-  // update select color live without full re-render
-  if (selEl) {
-    selEl.className='status-sel '+(newVal==='טופל'?'s-done':newVal==='אין מענה'?'s-miss':'s-wait');
-    // update timestamp cell (next sibling td)
-    const tsTd = selEl.closest('td').nextElementSibling;
-    if (tsTd && newVal!=='טרם טופל') {
-      const tsDt = new Date(now);
-      const tsStr = tsDt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+
-                    tsDt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-      const tsCls = newVal==='טופל'?'ts-done':'ts-miss';
-      tsTd.innerHTML = `<div class="status-ts ${tsCls}">${tsStr}</div>`;
-    } else if (tsTd) { tsTd.innerHTML=''; }
+  // update picker buttons live
+  if (btn) {
+    const picker = btn.closest('.status-picker');
+    if (picker) {
+      picker.querySelectorAll('.sp-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    // update timestamp
+    const tsEl = document.getElementById('ts-'+id);
+    if (tsEl) {
+      if (newVal !== 'טרם טופל') {
+        const d = new Date(now);
+        const s = d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+        tsEl.className = 'status-ts '+(newVal==='טופל'?'ts-done':'ts-miss');
+        tsEl.textContent = s;
+      } else {
+        tsEl.className='status-ts'; tsEl.textContent='';
+      }
+    }
   }
   updateTabCount(); renderSLA();
   if (currentTab==='status') renderStatusTab();
