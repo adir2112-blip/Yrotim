@@ -442,6 +442,44 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     </div>
     <div class="summary-row" id="status-summary"></div>
     <div class="status-table-wrap" id="status-table"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+
+    <!-- AGENT PERFORMANCE SECTION -->
+    <div style="margin-top:2.5rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:1.25rem;">
+        <div>
+          <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:2px;">ביצועי נציגים לפי תקופה</div>
+          <div style="font-size:13px;color:var(--text3);">כמה יירוטים כל נציג טיפל בהם</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button class="btn success" onclick="exportAgentPerfExcel()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            ייצוא לאקסל
+          </button>
+        </div>
+      </div>
+
+      <!-- period filter chips -->
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1rem;align-items:center;">
+        <button class="filter-chip active" id="perf-today"   onclick="setPerfPeriod('today')">היום</button>
+        <button class="filter-chip"        id="perf-week"    onclick="setPerfPeriod('week')">שבוע אחרון</button>
+        <button class="filter-chip"        id="perf-month"   onclick="setPerfPeriod('month')">חודש אחרון</button>
+        <button class="filter-chip"        id="perf-3month"  onclick="setPerfPeriod('3month')">3 חודשים</button>
+        <button class="filter-chip"        id="perf-6month"  onclick="setPerfPeriod('6month')">חצי שנה</button>
+        <button class="filter-chip"        id="perf-year"    onclick="setPerfPeriod('year')">שנה</button>
+        <button class="filter-chip"        id="perf-custom"  onclick="setPerfPeriod('custom')">תאריך ספציפי</button>
+        <div id="perf-custom-dates" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="date" id="perf-from" onchange="loadAgentPerf()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);">
+          <span style="font-size:13px;color:var(--text3)">עד</span>
+          <input type="date" id="perf-to" onchange="loadAgentPerf()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);">
+        </div>
+      </div>
+
+      <!-- summary cards -->
+      <div class="summary-row" id="perf-summary-cards" style="margin-bottom:1.25rem;"></div>
+
+      <!-- table -->
+      <div class="status-table-wrap" id="perf-table"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+    </div>
   </div>
 
   <!-- DAILY REPORT TAB -->
@@ -1198,6 +1236,157 @@ function getSlaOverdue() {
   return records.filter(r => r.status==='טרם טופל' && calcBusinessHours(new Date(r.created_at))>SLA_HOURS);
 }
 
+// ---- AGENT PERFORMANCE ----
+let perfPeriod = 'today';
+let perfData = [];
+
+function getPerfDates() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  switch(perfPeriod) {
+    case 'today':   return { from: today, to: new Date() };
+    case 'week':    return { from: new Date(today - 7*86400000), to: new Date() };
+    case 'month':   return { from: new Date(today.getFullYear(), today.getMonth()-1, today.getDate()), to: new Date() };
+    case '3month':  return { from: new Date(today.getFullYear(), today.getMonth()-3, today.getDate()), to: new Date() };
+    case '6month':  return { from: new Date(today.getFullYear(), today.getMonth()-6, today.getDate()), to: new Date() };
+    case 'year':    return { from: new Date(today.getFullYear()-1, today.getMonth(), today.getDate()), to: new Date() };
+    case 'custom': {
+      const f = document.getElementById('perf-from')?.value;
+      const t = document.getElementById('perf-to')?.value;
+      return {
+        from: f ? new Date(f) : today,
+        to:   t ? new Date(t+'T23:59:59') : new Date()
+      };
+    }
+    default: return { from: today, to: new Date() };
+  }
+}
+
+function setPerfPeriod(p) {
+  perfPeriod = p;
+  ['today','week','month','3month','6month','year','custom'].forEach(k => {
+    const el = document.getElementById('perf-'+k);
+    if (el) el.className = 'filter-chip'+(perfPeriod===k?' active':'');
+  });
+  const customDates = document.getElementById('perf-custom-dates');
+  if (customDates) customDates.style.display = p==='custom' ? 'flex' : 'none';
+  if (p !== 'custom') loadAgentPerf();
+}
+
+async function loadAgentPerf() {
+  const tableEl = document.getElementById('perf-table');
+  if (!tableEl) return;
+  tableEl.innerHTML = '<div class="loading"><div class="spinner"></div>טוען...</div>';
+
+  const { from, to } = getPerfDates();
+
+  const { data: hist } = await sb.from('yirutim_history')
+    .select('agent_name, new_status, activity, changed_at')
+    .gte('changed_at', from.toISOString())
+    .lte('changed_at', to.toISOString())
+    .not('agent_name', 'is', null);
+
+  perfData = hist || [];
+
+  // group by agent
+  const agentMap = {};
+  perfData.forEach(h => {
+    if (!agentMap[h.agent_name]) agentMap[h.agent_name] = { name: h.agent_name, total: 0, done: 0, miss: 0 };
+    agentMap[h.agent_name].total++;
+    if (h.new_status === 'טופל')      agentMap[h.agent_name].done++;
+    if (h.new_status === 'אין מענה')  agentMap[h.agent_name].miss++;
+  });
+
+  const rows = Object.values(agentMap).sort((a,b) => b.total - a.total);
+  const totalAll   = rows.reduce((s,r)=>s+r.total,0);
+  const doneAll    = rows.reduce((s,r)=>s+r.done,0);
+  const missAll    = rows.reduce((s,r)=>s+r.miss,0);
+  const topAgent   = rows[0];
+  const periodLabel = getPeriodLabel();
+
+  // summary cards
+  document.getElementById('perf-summary-cards').innerHTML = `
+    <div class="s-card"><div class="s-label">תקופה</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-top:4px">${periodLabel}</div></div>
+    <div class="s-card"><div class="s-label">סה"כ פעולות</div><div class="s-val c-blue">${totalAll}</div></div>
+    <div class="s-card"><div class="s-label">טופלו</div><div class="s-val c-green">${doneAll}</div></div>
+    <div class="s-card"><div class="s-label">אין מענה</div><div class="s-val c-gray">${missAll}</div></div>
+    <div class="s-card"><div class="s-label">נציגים פעילים</div><div class="s-val c-gray">${rows.length}</div></div>
+    ${topAgent ? `<div class="s-card" style="background:var(--green-bg);border-color:var(--green-border)"><div class="s-label">מוביל התקופה</div><div style="font-size:15px;font-weight:700;color:var(--green);margin-top:4px">${topAgent.name}</div><div class="s-sub">${topAgent.total} פעולות</div></div>` : ''}
+  `;
+
+  if (!rows.length) {
+    tableEl.innerHTML = '<div class="empty-state" style="padding:2rem;text-align:center;color:var(--text3)">אין נתונים לתקופה זו</div>';
+    return;
+  }
+
+  tableEl.innerHTML = `
+    <div class="st-row st-head" style="grid-template-columns:36px 1.6fr 100px 100px 100px 120px">
+      <div class="st-cell">#</div>
+      <div class="st-cell">שם נציג</div>
+      <div class="st-cell" style="text-align:center">סה"כ פעולות</div>
+      <div class="st-cell" style="text-align:center">טופלו</div>
+      <div class="st-cell" style="text-align:center">אין מענה</div>
+      <div class="st-cell" style="text-align:center">% מסה"כ</div>
+    </div>
+    ${rows.map((r,i) => {
+      const pct = totalAll ? Math.round(r.total/totalAll*100) : 0;
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      return `
+      <div class="st-row" style="grid-template-columns:36px 1.6fr 100px 100px 100px 120px">
+        <div class="st-cell" style="color:var(--text3);font-size:13px">${medal||i+1}</div>
+        <div class="st-cell" style="font-weight:600;font-size:15px">${r.name}</div>
+        <div class="st-cell" style="text-align:center"><span class="num-blue">${r.total}</span></div>
+        <div class="st-cell" style="text-align:center"><span class="num-green">${r.done}</span></div>
+        <div class="st-cell" style="text-align:center"><span class="num-gray">${r.miss}</span></div>
+        <div class="st-cell" style="text-align:center">
+          <span style="font-weight:600;color:var(--text2)">${pct}%</span>
+          <div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="st-row" style="grid-template-columns:36px 1.6fr 100px 100px 100px 120px;background:var(--bg3);">
+      <div class="st-cell"></div>
+      <div class="st-cell" style="font-weight:700;color:var(--text)">סה"כ</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--accent);font-size:17px">${totalAll}</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--green);font-size:17px">${doneAll}</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--gray);font-size:17px">${missAll}</div>
+      <div class="st-cell"></div>
+    </div>
+  `;
+}
+
+function getPeriodLabel() {
+  const { from, to } = getPerfDates();
+  const fmt = d => d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
+  const labels = { today:'היום', week:'שבוע אחרון', month:'חודש אחרון', '3month':'3 חודשים', '6month':'חצי שנה', year:'שנה אחרונה' };
+  if (perfPeriod === 'custom') return `${fmt(from)} — ${fmt(to)}`;
+  return labels[perfPeriod] || '';
+}
+
+function exportAgentPerfExcel() {
+  if (!perfData.length) { toast('אין נתונים לייצוא'); return; }
+  const agentMap = {};
+  perfData.forEach(h => {
+    if (!agentMap[h.agent_name]) agentMap[h.agent_name] = { name:h.agent_name, total:0, done:0, miss:0 };
+    agentMap[h.agent_name].total++;
+    if (h.new_status==='טופל')     agentMap[h.agent_name].done++;
+    if (h.new_status==='אין מענה') agentMap[h.agent_name].miss++;
+  });
+  const rows = Object.values(agentMap).sort((a,b)=>b.total-a.total).map((r,i)=>({
+    '#': i+1, 'שם נציג': r.name, 'סה"כ פעולות': r.total,
+    'טופלו': r.done, 'אין מענה': r.miss,
+    'תקופה': getPeriodLabel()
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows, {header:['#','שם נציג','סה"כ פעולות','טופלו','אין מענה','תקופה']});
+  ws['!cols'] = [{wch:4},{wch:22},{wch:14},{wch:10},{wch:12},{wch:20}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ביצועי נציגים');
+  XLSX.writeFile(wb, `ביצועי_נציגים_${getPeriodLabel().replace(/\s/g,'_')}.xlsx`);
+  toast('הורד בהצלחה ✓');
+}
+
 // ---- AGE BADGE ----
 function ageBadge(createdAt) {
   const days = Math.floor((Date.now()-new Date(createdAt))/86400000);
@@ -1601,7 +1790,7 @@ function switchTab(tab) {
     document.getElementById('view-'+t).style.display=t===tab?'block':'none';
     document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
   });
-  if (tab==='status') renderStatusTab();
+  if (tab==='status') { renderStatusTab(); loadAgentPerf(); }
   if (tab==='history') renderHistory();
   if (tab==='daily') { setDailyToday(); }
   if (tab==='agentsmgr') loadAgentsMgr();
