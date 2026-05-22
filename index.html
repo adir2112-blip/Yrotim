@@ -212,6 +212,30 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
   .st-row .st-cell:nth-child(4),.st-row .st-cell:nth-child(5){display:none;}
 }
 
+/* ===== AGENT LOGIN SCREEN ===== */
+.login-screen{min-height:100vh;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem;}
+.login-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:2.5rem 2rem;width:360px;max-width:100%;box-shadow:var(--shadow-md);animation:slideUp 0.25s ease;}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:0.5rem;}
+.login-logo .dot{width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px var(--green-bg);}
+.login-logo span{font-size:20px;font-weight:700;color:var(--text);}
+.login-subtitle{text-align:center;font-size:13px;color:var(--text3);margin-bottom:2rem;}
+.login-error{background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--red);font-weight:600;margin-bottom:1rem;display:none;}
+.pin-input{display:flex;gap:10px;justify-content:center;margin-bottom:1.5rem;}
+.pin-digit{width:56px;height:64px;border:2px solid var(--border2);border-radius:var(--radius);font-size:28px;font-weight:700;text-align:center;background:var(--bg3);color:var(--text);font-family:'Heebo',sans-serif;transition:border-color 0.15s;}
+.pin-digit:focus{outline:none;border-color:var(--accent);background:var(--bg2);}
+
+/* ===== ADMIN PANEL ===== */
+.admin-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.5rem;}
+.admin-row{display:grid;grid-template-columns:1fr 70px 1fr 80px 80px;align-items:center;border-bottom:1px solid var(--border);padding:10px 16px;gap:12px;}
+.admin-row:last-child{border-bottom:none;}
+.admin-row.admin-head{background:var(--bg3);font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;}
+.agent-active-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.agent-active-dot.on{background:var(--green);}
+.agent-active-dot.off{background:var(--gray);}
+.toggle-btn{padding:4px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;font-family:'Heebo',sans-serif;}
+.toggle-on{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+.toggle-off{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+
 /* ===== AGENT MODE ===== */
 .agent-nav{display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;height:60px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;box-shadow:var(--shadow);}
 .agent-brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;color:var(--text);}
@@ -254,6 +278,33 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 </style>
 </head>
 <body>
+<!-- AGENT LOGIN SCREEN -->
+<div id="login-screen" style="display:none">
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-logo"><div class="dot"></div><span>מערכת יירוטים</span></div>
+      <div class="login-subtitle">כניסת נציג</div>
+      <div class="form-group">
+        <label>בחר שם</label>
+        <select id="login-name" onchange="onLoginNameChange()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:15px;padding:10px 13px;font-family:'Heebo',sans-serif;">
+          <option value="">-- בחר שם --</option>
+        </select>
+      </div>
+      <div id="login-pin-wrap" style="display:none">
+        <label style="display:block;font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">4 ספרות אחרונות של ת"ז</label>
+        <div class="pin-input">
+          <input class="pin-digit" id="pin0" maxlength="1" type="password" inputmode="numeric" oninput="pinNext(0)" onkeydown="pinKey(event,0)">
+          <input class="pin-digit" id="pin1" maxlength="1" type="password" inputmode="numeric" oninput="pinNext(1)" onkeydown="pinKey(event,1)">
+          <input class="pin-digit" id="pin2" maxlength="1" type="password" inputmode="numeric" oninput="pinNext(2)" onkeydown="pinKey(event,2)">
+          <input class="pin-digit" id="pin3" maxlength="1" type="password" inputmode="numeric" oninput="pinNext(3)" onkeydown="pinKey(event,3)">
+        </div>
+      </div>
+      <div class="login-error" id="login-error">שם או PIN שגוי. נסה שנית.</div>
+      <button class="btn primary" style="width:100%;justify-content:center;font-size:15px;padding:12px;" onclick="doLogin()" id="login-btn">כניסה</button>
+    </div>
+  </div>
+</div>
+
 <div id="app">
   <nav class="nav">
     <div class="nav-brand"><div class="dot"></div>מערכת יירוטים</div>
@@ -289,6 +340,10 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     <button class="tab-btn" onclick="switchTab('daily')" id="tab-daily">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       דוח יומי
+    </button>
+    <button class="tab-btn" onclick="switchTab('agentsmgr')" id="tab-agentsmgr">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      ניהול נציגים
     </button>
   </div>
 
@@ -385,7 +440,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
       <table>
         <thead><tr>
           <th>תאריך יירוט</th><th>שם</th><th>טלפון</th>
-          <th>פעילות</th><th>סטטוס קודם</th><th>סטטוס חדש</th><th>תאריך עדכון</th>
+          <th>פעילות</th><th>סטטוס קודם</th><th>סטטוס חדש</th><th>נציג מטפל</th><th>תאריך עדכון</th>
         </tr></thead>
         <tbody id="hist-body"></tbody>
       </table>
@@ -401,7 +456,44 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
   </div>
 </div>
 
-<!-- ADD MODAL -->
+  <!-- AGENTS MANAGER TAB -->
+  <div id="view-agentsmgr" class="main" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;">ניהול נציגים</div>
+        <div style="font-size:14px;color:var(--text3);">הפעל / השבת נציגים, הוסף חדשים</div>
+      </div>
+      <button class="btn primary" onclick="openAddAgent()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        הוסף נציג
+      </button>
+    </div>
+    <div id="agents-mgr-list"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+  </div>
+</div>
+
+<!-- ADD AGENT MODAL -->
+<div class="overlay" id="modal-add-agent">
+  <div class="modal">
+    <h3>הוספת נציג חדש</h3>
+    <div class="form-group"><label>שם מלא</label><input id="fa-name" placeholder="שם הנציג"></div>
+    <div class="form-group"><label>PIN (4 ספרות אחרונות ת"ז)</label><input id="fa-pin" placeholder="0000" maxlength="4" type="text" inputmode="numeric"></div>
+    <div class="form-group">
+      <label>פעילויות</label>
+      <div id="fa-depts" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="כללית אקטיב" style="width:16px;height:16px;cursor:pointer"> כללית אקטיב</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="עובדים בריא" style="width:16px;height:16px;cursor:pointer"> עובדים בריא</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="לאומית FIT" style="width:16px;height:16px;cursor:pointer"> לאומית FIT</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף לעמית" style="width:16px;height:16px;cursor:pointer"> מעוף לעמית</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מאוחדת" style="width:16px;height:16px;cursor:pointer"> מאוחדת</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('modal-add-agent').classList.remove('open')">ביטול</button>
+      <button class="btn primary" onclick="saveNewAgent()">שמור</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="modal-add">
   <div class="modal">
     <h3>הוספת יירוט חדש</h3>
@@ -464,24 +556,81 @@ const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומי�
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
 const IS_AGENT = new URLSearchParams(window.location.search).get('agent') === '1';
+const URL_ACTIVITY = new URLSearchParams(window.location.search).get('activity') || null;
 
 let sb, records = [], currentFilter = 'all', currentTab = 'records', statusFilter = 'all';
 let agentFilter = 'all';
+let currentAgent = null;
+let allAgents = [];
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
   if (IS_AGENT) {
     document.getElementById('app').style.display = 'none';
-    document.getElementById('agent-app').style.display = 'block';
-    loadAgentRecords();
-    sb.channel('rt-agent').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadAgentRecords(true)).subscribe();
-    setInterval(()=>loadAgentRecords(true), 60000);
+    document.getElementById('agent-app').style.display = 'none';
+    const {data} = await sb.from('agents').select('*').eq('active', true).order('name');
+    allAgents = data || [];
+    const sel = document.getElementById('login-name');
+    allAgents.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id; opt.textContent = a.name;
+      sel.appendChild(opt);
+    });
+    document.getElementById('login-screen').style.display = 'block';
   } else {
+    document.getElementById('login-screen').style.display = 'none';
     loadRecords();
     sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
     setInterval(()=>loadRecords(true), 60000);
   }
 });
+
+// ===== LOGIN =====
+function onLoginNameChange() {
+  const val = document.getElementById('login-name').value;
+  document.getElementById('login-pin-wrap').style.display = val ? 'block' : 'none';
+  document.getElementById('login-error').style.display = 'none';
+  ['pin0','pin1','pin2','pin3'].forEach(id => { document.getElementById(id).value=''; });
+  if (val) setTimeout(()=>document.getElementById('pin0').focus(), 50);
+}
+function pinNext(idx) {
+  const el = document.getElementById('pin'+idx);
+  const v = el.value.replace(/\D/g,'');
+  el.value = v.slice(0,1);
+  if (v && idx < 3) document.getElementById('pin'+(idx+1)).focus();
+  if (idx === 3 && v) doLogin();
+}
+function pinKey(e, idx) {
+  if (e.key==='Backspace' && !document.getElementById('pin'+idx).value && idx>0)
+    document.getElementById('pin'+(idx-1)).focus();
+  if (e.key==='Enter') doLogin();
+}
+async function doLogin() {
+  const agentId = document.getElementById('login-name').value;
+  const errEl = document.getElementById('login-error');
+  if (!agentId) { errEl.textContent='בחר שם תחילה'; errEl.style.display='block'; return; }
+  const pin = ['pin0','pin1','pin2','pin3'].map(id=>document.getElementById(id).value).join('');
+  if (pin.length < 4) { errEl.textContent='יש להזין 4 ספרות'; errEl.style.display='block'; return; }
+  const agent = allAgents.find(a => String(a.id) === String(agentId));
+  if (!agent || agent.pin !== pin) {
+    errEl.textContent='PIN שגוי — נסה שנית';
+    errEl.style.display='block';
+    ['pin0','pin1','pin2','pin3'].forEach(id=>{document.getElementById(id).value='';});
+    document.getElementById('pin0').focus(); return;
+  }
+  currentAgent = agent;
+  const agentDepts = (agent.depts||[]).filter(d=>ACTIVITIES.includes(d));
+  if (URL_ACTIVITY && agentDepts.includes(URL_ACTIVITY)) agentFilter = URL_ACTIVITY;
+  else if (agentDepts.length===1) agentFilter = agentDepts[0];
+  else agentFilter = 'all';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('agent-app').style.display = 'block';
+  // update nav with agent name
+  document.querySelector('.agent-brand div div:first-child').textContent = `שלום, ${agent.name}`;
+  loadAgentRecords();
+  sb.channel('rt-agent').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadAgentRecords(true)).subscribe();
+  setInterval(()=>loadAgentRecords(true), 60000);
+}
 
 async function loadRecords(silent=false) {
   if (!silent) { document.getElementById('tbl-loading').style.display='block'; document.getElementById('main-table').style.display='none'; }
@@ -511,10 +660,23 @@ function agentFiltered() {
   return agentFilter==='all' ? records : records.filter(r=>r.activity===agentFilter);
 }
 
+function agentFiltered() {
+  let data = records;
+  // filter by agent's own depts
+  if (currentAgent) {
+    const myDepts = (currentAgent.depts||[]).filter(d=>ACTIVITIES.includes(d));
+    if (myDepts.length > 0) data = data.filter(r => myDepts.includes(r.activity));
+  }
+  if (agentFilter !== 'all') data = data.filter(r=>r.activity===agentFilter);
+  return data;
+}
+
 function renderAgent() {
-  const data = agentFiltered();
-  const total = records.length;
-  const overdue = records.filter(r=>calcBusinessHours(new Date(r.created_at))>SLA_HOURS).length;
+  const myDepts = currentAgent ? (currentAgent.depts||[]).filter(d=>ACTIVITIES.includes(d)) : ACTIVITIES;
+  const myRecords = currentAgent && myDepts.length > 0 ? records.filter(r=>myDepts.includes(r.activity)) : records;
+  const data = agentFilter==='all' ? myRecords : myRecords.filter(r=>r.activity===agentFilter);
+  const total = myRecords.length;
+  const overdue = myRecords.filter(r=>calcBusinessHours(new Date(r.created_at))>SLA_HOURS).length;
 
   document.getElementById('agent-nav-cnt').textContent = `${total} ממתינים לטיפול`;
 
@@ -522,12 +684,18 @@ function renderAgent() {
   document.getElementById('agent-stats').innerHTML = `
     <div class="agent-stat"><div class="agent-stat-label">ממתינים</div><div class="agent-stat-val c-blue">${total}</div></div>
     ${overdue>0?`<div class="agent-stat" style="background:var(--sla-bg);border-color:var(--sla-border)"><div class="agent-stat-label">חריגת SLA</div><div class="agent-stat-val c-sla">${overdue}</div></div>`:''}
+    <div style="flex:1;display:flex;justify-content:flex-end;align-items:center">
+      <button class="btn" onclick="agentLogout()" style="font-size:12px;padding:6px 12px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        התנתק
+      </button>
+    </div>
   `;
 
-  // Filter chips
-  const actCounts = ACTIVITIES.map(a=>({a, n:records.filter(r=>r.activity===a).length})).filter(x=>x.n>0);
+  // Filter chips — only agent's depts
+  const actCounts = myDepts.filter(d=>ACTIVITIES.includes(d)).map(a=>({a, n:myRecords.filter(r=>r.activity===a).length})).filter(x=>x.n>0);
   document.getElementById('agent-filter').innerHTML =
-    `<button class="agent-chip${agentFilter==='all'?' active':''}" onclick="setAgentFilter('all')">הכל (${total})</button>`+
+    (actCounts.length > 1 ? `<button class="agent-chip${agentFilter==='all'?' active':''}" onclick="setAgentFilter('all')">הכל (${total})</button>` : '') +
     actCounts.map(({a,n})=>`<button class="agent-chip${agentFilter===a?' active':''}" onclick="setAgentFilter('${a}')">${a} (${n})</button>`).join('');
 
   // Cards
@@ -591,10 +759,12 @@ async function agentStatus(id, newStatus, oldStatus, btn) {
   const {error} = await sb.from('yirutim').update({status:newStatus, status_changed_at:now}).eq('id',id);
   if (error) { toast('שגיאה בעדכון'); actions.querySelectorAll('button').forEach(b=>b.disabled=false); return; }
 
-  // Log history
+  // Log history with agent name
   if (rec) await sb.from('yirutim_history').insert([{
     yirutim_id:id, phone:rec.phone, name:rec.name,
-    activity:rec.activity, old_status:oldStatus, new_status:newStatus, created_at:rec.created_at
+    activity:rec.activity, old_status:oldStatus, new_status:newStatus,
+    created_at:rec.created_at,
+    agent_name: currentAgent ? currentAgent.name : null
   }]);
 
   // Show success overlay on card
@@ -609,6 +779,72 @@ async function agentStatus(id, newStatus, oldStatus, btn) {
     if (card) { card.style.transition='all 0.35s'; card.style.opacity='0'; card.style.maxHeight='0'; card.style.padding='0'; card.style.margin='0'; card.style.overflow='hidden'; }
     setTimeout(()=>{ records=records.filter(r=>r.id!==id); renderAgent(); }, 380);
   }, 1200);
+}
+
+function agentLogout() {
+  currentAgent = null; agentFilter = 'all';
+  document.getElementById('agent-app').style.display = 'none';
+  ['pin0','pin1','pin2','pin3'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-pin-wrap').style.display = 'none';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'block';
+}
+
+// ---- AGENTS MANAGER ----
+async function loadAgentsMgr() {
+  const {data} = await sb.from('agents').select('*').order('name');
+  allAgents = data || [];
+  renderAgentsMgr();
+}
+
+function renderAgentsMgr() {
+  const container = document.getElementById('agents-mgr-list');
+  if (!allAgents.length) { container.innerHTML='<div class="empty-state">אין נציגים</div>'; return; }
+  container.innerHTML = `
+    <div class="admin-table-wrap">
+      <div class="admin-row admin-head">
+        <div>שם</div><div>PIN</div><div>פעילויות</div><div>סטטוס</div><div>פעולה</div>
+      </div>
+      ${allAgents.map(a=>`
+      <div class="admin-row">
+        <div style="font-weight:600;font-size:14px">${a.name}</div>
+        <div style="font-family:monospace;font-size:14px;color:var(--text2)">${a.pin}</div>
+        <div style="font-size:12px;color:var(--text2)">${(a.depts||[]).join(', ')||'—'}</div>
+        <div><span class="agent-active-dot ${a.active?'on':'off'}"></span> ${a.active?'פעיל':'מושבת'}</div>
+        <div>
+          <button class="toggle-btn ${a.active?'toggle-on':'toggle-off'}" onclick="toggleAgent(${a.id},${!a.active})">
+            ${a.active?'השבת':'הפעל'}
+          </button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+}
+
+async function toggleAgent(id, newActive) {
+  await sb.from('agents').update({active:newActive}).eq('id',id);
+  const a = allAgents.find(x=>x.id===id);
+  if (a) a.active = newActive;
+  renderAgentsMgr();
+  toast(newActive ? 'נציג הופעל' : 'נציג הושבת');
+}
+
+function openAddAgent() { document.getElementById('modal-add-agent').classList.add('open'); }
+
+async function saveNewAgent() {
+  const name = document.getElementById('fa-name').value.trim();
+  const pin = document.getElementById('fa-pin').value.trim();
+  const depts = [...document.querySelectorAll('#fa-depts input:checked')].map(c=>c.value);
+  if (!name || pin.length !== 4) { toast('יש למלא שם ו-4 ספרות PIN'); return; }
+  const maxId = allAgents.reduce((m,a)=>Math.max(m,a.id),0);
+  const {error} = await sb.from('agents').insert([{id:maxId+1, name, pin, depts, active:true}]);
+  if (error) { toast('שגיאה: '+error.message); return; }
+  document.getElementById('modal-add-agent').classList.remove('open');
+  document.getElementById('fa-name').value='';
+  document.getElementById('fa-pin').value='';
+  document.querySelectorAll('#fa-depts input').forEach(c=>c.checked=false);
+  await loadAgentsMgr();
+  toast('נציג נוסף בהצלחה ✓');
 }
 
 // ---- SLA ----
@@ -894,6 +1130,7 @@ async function renderHistory() {
         <td><span class="b-act">${r.activity||'—'}</span></td>
         <td>${statusBadge(r.old_status)}</td>
         <td>${statusBadge(r.new_status)}</td>
+        <td style="font-size:12px;color:var(--text2);font-weight:500">${r.agent_name||'—'}</td>
         <td style="font-size:12px;color:var(--text2);font-weight:500">${changed}</td>
       </tr>`;
     }).join('');
@@ -932,15 +1169,13 @@ async function changeStatus(id, newVal, oldVal, btn) {
   const now = new Date().toISOString();
   const {error} = await sb.from('yirutim').update({status:newVal, status_changed_at:now}).eq('id',id);
   if (error){toast('שגיאה בעדכון');return;}
-  // log history
+  // log history with agent name
   await sb.from('yirutim_history').insert([{
     yirutim_id:id, phone:rec.phone, name:rec.name,
     activity:rec.activity, old_status:oldVal, new_status:newVal,
-    created_at:rec.created_at
+    created_at:rec.created_at,
+    agent_name: currentAgent ? currentAgent.name : null
   }]);
-  rec.status=newVal;
-  rec.status_changed_at=now;
-  // update picker buttons live
   if (btn) {
     const picker = btn.closest('.status-picker');
     if (picker) {
@@ -1007,13 +1242,14 @@ async function saveAdd() {
 // ---- TABS ----
 function switchTab(tab) {
   currentTab=tab;
-  ['records','status','history','daily'].forEach(t=>{
+  ['records','status','history','daily','agentsmgr'].forEach(t=>{
     document.getElementById('view-'+t).style.display=t===tab?'block':'none';
     document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
   });
   if (tab==='status') renderStatusTab();
   if (tab==='history') renderHistory();
   if (tab==='daily') { setDailyToday(); }
+  if (tab==='agentsmgr') loadAgentsMgr();
 }
 
 // ---- UTILS ----
