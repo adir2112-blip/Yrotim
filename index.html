@@ -919,13 +919,18 @@ function renderAgent() {
 function setAgentFilter(f) { agentFilter=f; renderAgent(); }
 
 async function agentStatus(id, newStatus, oldStatus, btn) {
-  // Disable all buttons on card
   const actions = document.getElementById('aactions-'+id);
   actions.querySelectorAll('button').forEach(b=>b.disabled=true);
 
   const rec = records.find(r=>r.id===id);
   const now = new Date().toISOString();
-  const {error} = await sb.from('yirutim').update({status:newStatus, status_changed_at:now}).eq('id',id);
+  const agentName = currentAgent ? currentAgent.name : null;
+
+  const {error} = await sb.from('yirutim').update({
+    status: newStatus,
+    status_changed_at: now,
+    handled_by: agentName
+  }).eq('id',id);
   if (error) { toast('שגיאה בעדכון'); actions.querySelectorAll('button').forEach(b=>b.disabled=false); return; }
 
   // Log history with agent name
@@ -933,16 +938,15 @@ async function agentStatus(id, newStatus, oldStatus, btn) {
     yirutim_id:id, phone:rec.phone, name:rec.name,
     activity:rec.activity, old_status:oldStatus, new_status:newStatus,
     created_at:rec.created_at,
-    agent_name: currentAgent ? currentAgent.name : null
+    agent_name: agentName
   }]);
 
-  // Show success overlay on card
+  // Show success overlay
   const overlay = newStatus==='טופל'
-    ? `<div class="agent-done-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>טופל בהצלחה ✓</div>`
-    : `<div class="agent-miss-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.73 21a2 2 0 01-3.46 0l-8.2-14c-.89-1.53.3-3.44 2-3h18a2 2 0 012 3z"/></svg>סומן: אין מענה</div>`;
+    ? `<div class="agent-done-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>טופל ע"י ${agentName||''} ✓</div>`
+    : `<div class="agent-miss-overlay"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13.73 21a2 2 0 01-3.46 0l-8.2-14c-.89-1.53.3-3.44 2-3h18a2 2 0 012 3z"/></svg>אין מענה — ${agentName||''}</div>`;
   actions.innerHTML = overlay;
 
-  // Remove card after delay
   setTimeout(()=>{
     const card = document.getElementById('acard-'+id);
     if (card) { card.style.transition='all 0.35s'; card.style.opacity='0'; card.style.maxHeight='0'; card.style.padding='0'; card.style.margin='0'; card.style.overflow='hidden'; }
