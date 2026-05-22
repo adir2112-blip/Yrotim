@@ -278,16 +278,56 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 </style>
 </head>
 <body>
-<!-- AGENT LOGIN SCREEN -->
+<!-- UNIFIED LOGIN SCREEN -->
 <div id="login-screen" style="display:none">
   <div class="login-screen">
-    <div class="login-card">
+
+    <!-- MODE SELECTION -->
+    <div id="login-mode-select" class="login-card">
       <div class="login-logo"><div class="dot"></div><span>מערכת יירוטים</span></div>
-      <div class="login-subtitle">כניסת נציג</div>
+      <div class="login-subtitle">בחר סוג כניסה</div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:0.5rem;">
+        <button onclick="showManagerLogin()" style="display:flex;align-items:center;gap:14px;padding:18px 20px;border:1.5px solid var(--border2);border-radius:var(--radius-lg);background:var(--bg3);cursor:pointer;font-family:'Heebo',sans-serif;font-size:15px;font-weight:600;color:var(--text);transition:all 0.15s;text-align:right;">
+          <span style="font-size:28px">👔</span>
+          <div>
+            <div>כניסת מנהל</div>
+            <div style="font-size:12px;font-weight:400;color:var(--text3);margin-top:2px">מייל + סיסמה</div>
+          </div>
+        </button>
+        <button onclick="showAgentLogin()" style="display:flex;align-items:center;gap:14px;padding:18px 20px;border:1.5px solid var(--border2);border-radius:var(--radius-lg);background:var(--bg3);cursor:pointer;font-family:'Heebo',sans-serif;font-size:15px;font-weight:600;color:var(--text);transition:all 0.15s;text-align:right;">
+          <span style="font-size:28px">🎧</span>
+          <div>
+            <div>כניסת נציג</div>
+            <div style="font-size:12px;font-weight:400;color:var(--text3);margin-top:2px">בחירת שם + 4 ספרות ת"ז</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- MANAGER LOGIN -->
+    <div id="login-manager-form" class="login-card" style="display:none">
+      <button onclick="showModeSelect()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;gap:5px;margin-bottom:1rem;font-family:'Heebo',sans-serif;">
+        ← חזרה
+      </button>
+      <div class="login-logo"><div class="dot"></div><span>כניסת מנהל</span></div>
+      <div class="login-subtitle">מייל וסיסמה</div>
+      <div class="form-group"><label>מייל</label><input id="mgr-email" type="email" placeholder="your@email.com" style="direction:ltr" onkeydown="if(event.key==='Enter')doManagerLogin()"></div>
+      <div class="form-group"><label>סיסמה</label><input id="mgr-password" type="password" placeholder="••••••••" style="direction:ltr" onkeydown="if(event.key==='Enter')doManagerLogin()"></div>
+      <div class="login-error" id="mgr-error"></div>
+      <button class="btn primary" style="width:100%;justify-content:center;font-size:15px;padding:12px;margin-top:0.5rem;" onclick="doManagerLogin()" id="mgr-login-btn">כניסה</button>
+    </div>
+
+    <!-- AGENT LOGIN -->
+    <div id="login-agent-form" class="login-card" style="display:none">
+      <button onclick="showModeSelect()" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;display:flex;align-items:center;gap:5px;margin-bottom:1rem;font-family:'Heebo',sans-serif;">
+        ← חזרה
+      </button>
+      <div class="login-logo"><div class="dot"></div><span>כניסת נציג</span></div>
+      <div class="login-subtitle">בחר את שמך והזן PIN</div>
       <div class="form-group">
-        <label>בחר שם</label>
-        <select id="login-name" onchange="onLoginNameChange()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:15px;padding:10px 13px;font-family:'Heebo',sans-serif;">
-          <option value="">-- בחר שם --</option>
+        <label>חיפוש שם</label>
+        <input id="agent-name-search" placeholder="הקלד שם לחיפוש..." oninput="filterAgentList()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;padding:10px 13px;font-family:'Heebo',sans-serif;margin-bottom:8px;">
+        <select id="login-name" onchange="onLoginNameChange()" size="5" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;padding:6px;font-family:'Heebo',sans-serif;height:130px;">
         </select>
       </div>
       <div id="login-pin-wrap" style="display:none">
@@ -299,16 +339,20 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
           <input class="pin-digit" id="pin3" maxlength="1" type="password" inputmode="numeric" oninput="pinNext(3)" onkeydown="pinKey(event,3)">
         </div>
       </div>
-      <div class="login-error" id="login-error">שם או PIN שגוי. נסה שנית.</div>
-      <button class="btn primary" style="width:100%;justify-content:center;font-size:15px;padding:12px;" onclick="doLogin()" id="login-btn">כניסה</button>
+      <div class="login-error" id="login-error"></div>
+      <button class="btn primary" style="width:100%;justify-content:center;font-size:15px;padding:12px;margin-top:0.5rem;" onclick="doLogin()" id="login-btn">כניסה</button>
     </div>
+
   </div>
 </div>
 
 <div id="app">
   <nav class="nav">
     <div class="nav-brand"><div class="dot"></div>מערכת יירוטים</div>
-    <span class="nav-status" id="sync-status"></span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="nav-status" id="sync-status"></span>
+      <button onclick="managerLogout()" style="background:none;border:1px solid var(--border2);border-radius:var(--radius);padding:5px 12px;font-size:12px;cursor:pointer;color:var(--text2);font-family:'Heebo',sans-serif;">התנתק</button>
+    </div>
   </nav>
 
   <!-- ONE-TIME MIGRATION NOTICE -->
@@ -624,8 +668,6 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת'];
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
-const IS_AGENT = new URLSearchParams(window.location.search).get('agent') === '1';
-const URL_ACTIVITY = new URLSearchParams(window.location.search).get('activity') || null;
 
 let sb, records = [], currentFilter = 'all', currentTab = 'records', statusFilter = 'all';
 let agentFilter = 'all';
@@ -634,29 +676,90 @@ let allAgents = [];
 
 window.addEventListener('DOMContentLoaded', async () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
-  if (IS_AGENT) {
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('agent-app').style.display = 'none';
-    const {data} = await sb.from('agents').select('*').eq('active', true).order('name');
-    allAgents = data || [];
-    const sel = document.getElementById('login-name');
-    allAgents.forEach(a => {
-      const opt = document.createElement('option');
-      opt.value = a.id; opt.textContent = a.name;
-      sel.appendChild(opt);
-    });
-    document.getElementById('login-screen').style.display = 'block';
-  } else {
-    document.getElementById('login-screen').style.display = 'none';
-    loadRecords();
-    sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
-    setInterval(()=>loadRecords(true), 60000);
-  }
+  // Load agents for login list
+  const {data} = await sb.from('agents').select('*').eq('active', true).order('name');
+  allAgents = data || [];
+  populateAgentList(allAgents);
+  // Always show unified login screen first
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('agent-app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'block';
+  showModeSelect();
 });
 
-// ===== LOGIN =====
+// ===== MODE SELECTION =====
+function showModeSelect() {
+  document.getElementById('login-mode-select').style.display = 'block';
+  document.getElementById('login-manager-form').style.display = 'none';
+  document.getElementById('login-agent-form').style.display = 'none';
+}
+function showManagerLogin() {
+  document.getElementById('login-mode-select').style.display = 'none';
+  document.getElementById('login-manager-form').style.display = 'block';
+  document.getElementById('login-agent-form').style.display = 'none';
+  setTimeout(()=>document.getElementById('mgr-email').focus(), 50);
+}
+function showAgentLogin() {
+  document.getElementById('login-mode-select').style.display = 'none';
+  document.getElementById('login-manager-form').style.display = 'none';
+  document.getElementById('login-agent-form').style.display = 'block';
+}
+
+// ===== MANAGER LOGIN (Supabase Auth) =====
+async function doManagerLogin() {
+  const email = document.getElementById('mgr-email').value.trim();
+  const password = document.getElementById('mgr-password').value;
+  const errEl = document.getElementById('mgr-error');
+  const btn = document.getElementById('mgr-login-btn');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent='יש למלא מייל וסיסמה'; errEl.style.display='block'; return; }
+  btn.textContent = 'מתחבר...'; btn.disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  btn.textContent = 'כניסה'; btn.disabled = false;
+  if (error) {
+    errEl.textContent = 'מייל או סיסמה שגויים';
+    errEl.style.display = 'block'; return;
+  }
+  // Verify manager
+  const { data: mgr } = await sb.from('managers').select('*').eq('email', email).eq('active', true).single();
+  if (!mgr) {
+    await sb.auth.signOut();
+    errEl.textContent = 'אין הרשאת כניסה למנהל';
+    errEl.style.display = 'block'; return;
+  }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // show manager name in nav
+  document.getElementById('sync-status').textContent = `שלום, ${mgr.name||email.split('@')[0]}`;
+  loadRecords();
+  sb.channel('rt').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
+  setInterval(()=>loadRecords(true), 60000);
+}
+
+// ===== AGENT LIST =====
+function populateAgentList(agents) {
+  const sel = document.getElementById('login-name');
+  sel.innerHTML = '';
+  agents.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a.id; opt.textContent = a.name;
+    sel.appendChild(opt);
+  });
+  // deselect all
+  sel.selectedIndex = -1;
+}
+
+function filterAgentList() {
+  const q = document.getElementById('agent-name-search').value.trim();
+  const filtered = q ? allAgents.filter(a=>a.name.includes(q)) : allAgents;
+  populateAgentList(filtered);
+  document.getElementById('login-pin-wrap').style.display = 'none';
+}
+
+// ===== AGENT LOGIN =====
 function onLoginNameChange() {
-  const val = document.getElementById('login-name').value;
+  const sel = document.getElementById('login-name');
+  const val = sel.value;
   document.getElementById('login-pin-wrap').style.display = val ? 'block' : 'none';
   document.getElementById('login-error').style.display = 'none';
   ['pin0','pin1','pin2','pin3'].forEach(id => { document.getElementById(id).value=''; });
@@ -689,12 +792,9 @@ async function doLogin() {
   }
   currentAgent = agent;
   const agentDepts = (agent.depts||[]).filter(d=>ACTIVITIES.includes(d));
-  if (URL_ACTIVITY && agentDepts.includes(URL_ACTIVITY)) agentFilter = URL_ACTIVITY;
-  else if (agentDepts.length===1) agentFilter = agentDepts[0];
-  else agentFilter = 'all';
+  agentFilter = agentDepts.length===1 ? agentDepts[0] : 'all';
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('agent-app').style.display = 'block';
-  // update nav with agent name
   document.querySelector('.agent-brand div div:first-child').textContent = `שלום, ${agent.name}`;
   loadAgentRecords();
   sb.channel('rt-agent').on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadAgentRecords(true)).subscribe();
@@ -850,14 +950,27 @@ async function agentStatus(id, newStatus, oldStatus, btn) {
   }, 1200);
 }
 
+async function managerLogout() {
+  await sb.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('mgr-email').value = '';
+  document.getElementById('mgr-password').value = '';
+  document.getElementById('mgr-error').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'block';
+  showModeSelect();
+}
+
 function agentLogout() {
   currentAgent = null; agentFilter = 'all';
   document.getElementById('agent-app').style.display = 'none';
   ['pin0','pin1','pin2','pin3'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('login-name').value = '';
+  document.getElementById('login-name').selectedIndex = -1;
+  document.getElementById('agent-name-search').value = '';
+  populateAgentList(allAgents);
   document.getElementById('login-pin-wrap').style.display = 'none';
   document.getElementById('login-error').style.display = 'none';
   document.getElementById('login-screen').style.display = 'block';
+  showModeSelect();
 }
 
 // ---- AGENTS MANAGER ----
