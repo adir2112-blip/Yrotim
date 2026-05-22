@@ -975,7 +975,6 @@ async function agentStatus(id, newStatus, oldStatus, btn) {
   if (rec) await sb.from('yirutim_history').insert([{
     yirutim_id:id, phone:rec.phone, name:rec.name,
     activity:rec.activity, old_status:oldStatus, new_status:newStatus,
-    created_at:rec.created_at,
     agent_name: agentName
   }]);
 
@@ -1706,7 +1705,6 @@ async function changeStatus(id, newVal, oldVal, btn) {
   await sb.from('yirutim_history').insert([{
     yirutim_id:id, phone:rec.phone, name:rec.name,
     activity:rec.activity, old_status:oldVal, new_status:newVal,
-    created_at:rec.created_at,
     agent_name: agentName
   }]);
   rec.status=newVal;
@@ -1773,7 +1771,7 @@ async function saveAdd() {
   // log creation in history
   await sb.from('yirutim_history').insert([{
     yirutim_id:data[0].id, phone, name, activity,
-    old_status:null, new_status:'טרם טופל', created_at:data[0].created_at
+    old_status:null, new_status:'טרם טופל'
   }]);
   closeAdd();
   document.getElementById('f-name').value='';
