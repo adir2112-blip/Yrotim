@@ -458,17 +458,86 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 
   <!-- AGENTS MANAGER TAB -->
   <div id="view-agentsmgr" class="main" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px;">
+    <!-- header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:12px;">
       <div>
         <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:3px;">ניהול נציגים</div>
-        <div style="font-size:14px;color:var(--text3);">הפעל / השבת נציגים, הוסף חדשים</div>
+        <div style="font-size:14px;color:var(--text3);" id="agents-count"></div>
       </div>
-      <button class="btn primary" onclick="openAddAgent()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        הוסף נציג
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn success" onclick="exportAgentsExcel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          ייצוא לאקסל
+        </button>
+        <button class="btn primary" onclick="openAddAgent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          הוסף נציג
+        </button>
+      </div>
     </div>
+
+    <!-- summary cards -->
+    <div class="summary-row" id="agents-summary-cards" style="margin-bottom:1.25rem;"></div>
+
+    <!-- search + filters -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem;align-items:center;">
+      <div class="search-wrap" style="max-width:260px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="agent-search" placeholder="חיפוש לפי שם..." oninput="renderAgentsMgr()">
+      </div>
+      <button class="filter-chip" id="af-all"    onclick="setAgentMgrFilter('all')">הכל</button>
+      <button class="filter-chip" id="af-active" onclick="setAgentMgrFilter('active')">פעילים</button>
+      <button class="filter-chip" id="af-off"    onclick="setAgentMgrFilter('off')">מושבתים</button>
+      <select id="af-dept" onchange="renderAgentsMgr()" style="padding:6px 12px;border:1px solid var(--border2);border-radius:20px;font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text2);cursor:pointer;">
+        <option value="">כל הפעילויות</option>
+        <option>כללית אקטיב</option><option>עובדים בריא</option>
+        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option>
+      </select>
+    </div>
+
     <div id="agents-mgr-list"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+  </div>
+</div>
+
+<!-- EDIT AGENT MODAL -->
+<div class="overlay" id="modal-edit-agent">
+  <div class="modal">
+    <h3 id="edit-agent-title">עריכת נציג</h3>
+    <input type="hidden" id="ea-id">
+    <div class="form-group"><label>שם מלא</label><input id="ea-name" placeholder="שם הנציג"></div>
+    <div class="form-group">
+      <label>PIN (4 ספרות)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="ea-pin" placeholder="0000" maxlength="4" type="text" inputmode="numeric" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:14px;padding:10px 13px;font-family:'Heebo',sans-serif;">
+        <span style="font-size:12px;color:var(--text3)">השאר ריק לשמור PIN קיים</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>פעילויות</label>
+      <div id="ea-depts" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="כללית אקטיב" style="width:16px;height:16px;cursor:pointer"> כללית אקטיב</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="עובדים בריא" style="width:16px;height:16px;cursor:pointer"> עובדים בריא</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="לאומית FIT" style="width:16px;height:16px;cursor:pointer"> לאומית FIT</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף לעמית" style="width:16px;height:16px;cursor:pointer"> מעוף לעמית</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מאוחדת" style="width:16px;height:16px;cursor:pointer"> מאוחדת</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('modal-edit-agent').classList.remove('open')">ביטול</button>
+      <button class="btn primary" onclick="saveEditAgent()">שמור שינויים</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE AGENT CONFIRM MODAL -->
+<div class="overlay" id="modal-del-agent">
+  <div class="dup-modal">
+    <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg> מחיקת נציג</h3>
+    <p>האם למחוק את הנציג <strong id="del-agent-name"></strong>?<br>פעולה זו לא ניתנת לביטול.</p>
+    <div class="modal-actions">
+      <button class="btn" onclick="document.getElementById('modal-del-agent').classList.remove('open')">ביטול</button>
+      <button class="btn" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border);" onclick="confirmDeleteAgent()">מחק</button>
+    </div>
   </div>
 </div>
 
@@ -792,44 +861,194 @@ function agentLogout() {
 }
 
 // ---- AGENTS MANAGER ----
+let agentMgrFilter = 'all';
+let agentToDelete = null;
+let agentMgrSort = {col:'name', dir:1};
+
 async function loadAgentsMgr() {
   const {data} = await sb.from('agents').select('*').order('name');
   allAgents = data || [];
+
+  // this month treated counts
+  const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+  const {data: histMonth} = await sb.from('yirutim_history')
+    .select('agent_name').gte('changed_at', monthStart.toISOString()).eq('new_status','טופל');
+  const counts = {};
+  (histMonth||[]).forEach(h=>{ if(h.agent_name) counts[h.agent_name]=(counts[h.agent_name]||0)+1; });
+
+  // last login (last history entry per agent)
+  const {data: histLast} = await sb.from('yirutim_history')
+    .select('agent_name,changed_at').not('agent_name','is',null).order('changed_at',{ascending:false});
+  const lastLogin = {};
+  (histLast||[]).forEach(h=>{ if(h.agent_name && !lastLogin[h.agent_name]) lastLogin[h.agent_name]=h.changed_at; });
+
+  allAgents.forEach(a => {
+    a._treated  = counts[a.name]||0;
+    a._lastLogin = lastLogin[a.name]||null;
+  });
+  renderAgentsMgr();
+}
+
+function setAgentMgrFilter(f) {
+  agentMgrFilter = f;
+  renderAgentsMgr();
+}
+
+function sortAgentsMgr(col) {
+  if (agentMgrSort.col===col) agentMgrSort.dir *= -1;
+  else { agentMgrSort.col=col; agentMgrSort.dir=1; }
   renderAgentsMgr();
 }
 
 function renderAgentsMgr() {
+  ['all','active','off'].forEach(k=>{
+    const el=document.getElementById('af-'+k);
+    if(el) el.className='filter-chip'+(agentMgrFilter===k?' active':'');
+  });
+
+  const q   = (document.getElementById('agent-search')||{}).value||'';
+  const dept= (document.getElementById('af-dept')||{}).value||'';
+  let list  = [...allAgents];
+  if (agentMgrFilter==='active') list=list.filter(a=>a.active);
+  if (agentMgrFilter==='off')    list=list.filter(a=>!a.active);
+  if (q.trim())  list=list.filter(a=>a.name.includes(q.trim()));
+  if (dept) list=list.filter(a=>(a.depts||[]).includes(dept));
+
+  // sort
+  const {col,dir} = agentMgrSort;
+  list.sort((a,b)=>{
+    let av = col==='_treated'?a._treated:col==='name'?a.name:col==='active'?Number(a.active):0;
+    let bv = col==='_treated'?b._treated:col==='name'?b.name:col==='active'?Number(b.active):0;
+    if (typeof av==='string') return av.localeCompare(bv,'he')*dir;
+    return (av-bv)*dir;
+  });
+
+  const active  = allAgents.filter(a=>a.active).length;
+  const totalT  = allAgents.reduce((s,a)=>s+a._treated,0);
+  const countEl = document.getElementById('agents-count');
+  if (countEl) countEl.textContent=`${active} פעילים · ${allAgents.length-active} מושבתים · סה"כ ${allAgents.length}`;
+
+  // summary cards (feature 8)
+  const topAgent = [...allAgents].sort((a,b)=>b._treated-a._treated)[0];
+  document.getElementById('agents-summary-cards').innerHTML=`
+    <div class="s-card"><div class="s-label">סה"כ נציגים</div><div class="s-val c-gray">${allAgents.length}</div></div>
+    <div class="s-card"><div class="s-label">פעילים</div><div class="s-val c-green">${active}</div></div>
+    <div class="s-card"><div class="s-label">מושבתים</div><div class="s-val c-gray">${allAgents.length-active}</div></div>
+    <div class="s-card"><div class="s-label">טיפולים החודש (סה"כ)</div><div class="s-val c-blue">${totalT}</div></div>
+    ${topAgent&&topAgent._treated>0?`<div class="s-card"><div class="s-label">מוביל החודש</div><div style="font-size:15px;font-weight:700;color:var(--green);margin-top:4px">${topAgent.name}</div><div class="s-sub">${topAgent._treated} טיפולים</div></div>`:''}
+  `;
+
   const container = document.getElementById('agents-mgr-list');
-  if (!allAgents.length) { container.innerHTML='<div class="empty-state">אין נציגים</div>'; return; }
-  container.innerHTML = `
+  if (!list.length) { container.innerHTML='<div class="empty-state" style="padding:2rem;text-align:center;color:var(--text3)">לא נמצאו נציגים</div>'; return; }
+
+  const arrow = col => agentMgrSort.col===col ? (agentMgrSort.dir===1?'↑':'↓') : '';
+
+  container.innerHTML=`
     <div class="admin-table-wrap">
-      <div class="admin-row admin-head">
-        <div>שם</div><div>PIN</div><div>פעילויות</div><div>סטטוס</div><div>פעולה</div>
+      <div class="admin-row admin-head" style="grid-template-columns:1.5fr 60px 1.3fr 110px 90px 90px 140px;cursor:pointer;">
+        <div onclick="sortAgentsMgr('name')">שם ${arrow('name')}</div>
+        <div>PIN</div>
+        <div>פעילויות</div>
+        <div onclick="sortAgentsMgr('_treated')" style="text-align:center">טיפולים החודש ${arrow('_treated')}</div>
+        <div>כניסה אחרונה</div>
+        <div onclick="sortAgentsMgr('active')">סטטוס ${arrow('active')}</div>
+        <div>פעולות</div>
       </div>
-      ${allAgents.map(a=>`
-      <div class="admin-row">
-        <div style="font-weight:600;font-size:14px">${a.name}</div>
-        <div style="font-family:monospace;font-size:14px;color:var(--text2)">${a.pin}</div>
-        <div style="font-size:12px;color:var(--text2)">${(a.depts||[]).join(', ')||'—'}</div>
-        <div><span class="agent-active-dot ${a.active?'on':'off'}"></span> ${a.active?'פעיל':'מושבת'}</div>
-        <div>
-          <button class="toggle-btn ${a.active?'toggle-on':'toggle-off'}" onclick="toggleAgent(${a.id},${!a.active})">
-            ${a.active?'השבת':'הפעל'}
-          </button>
-        </div>
-      </div>`).join('')}
+      ${list.map(a=>{
+        const lastStr = a._lastLogin
+          ? new Date(a._lastLogin).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})
+          : '—';
+        const daysSince = a._lastLogin ? Math.floor((Date.now()-new Date(a._lastLogin))/86400000) : null;
+        const lastColor = daysSince===null?'var(--text3)':daysSince>14?'var(--red)':daysSince>7?'var(--amber)':'var(--green)';
+        return `
+        <div class="admin-row" style="grid-template-columns:1.5fr 60px 1.3fr 110px 90px 90px 140px;${!a.active?'opacity:0.55':''}">
+          <div style="font-weight:600;font-size:14px">${a.name}</div>
+          <div style="font-family:monospace;font-size:14px;color:var(--text2)">${a.pin}</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.5">${(a.depts||[]).join(', ')||'—'}</div>
+          <div style="text-align:center;font-weight:700;font-size:16px;color:${a._treated>0?'var(--green)':'var(--text3)'}">${a._treated}</div>
+          <div style="font-size:12px;color:${lastColor};font-weight:500">${lastStr}</div>
+          <div><span class="agent-active-dot ${a.active?'on':'off'}" style="margin-left:4px"></span>${a.active?'פעיל':'מושבת'}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            <button class="toggle-btn" style="background:var(--accent-bg);color:var(--accent);border-color:rgba(58,107,255,0.2)" onclick="openEditAgent(${a.id})">✏️</button>
+            <button class="toggle-btn ${a.active?'toggle-on':'toggle-off'}" onclick="toggleAgent(${a.id},${!a.active})">${a.active?'השבת':'הפעל'}</button>
+            <button class="toggle-btn" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border)" onclick="openDeleteAgent(${a.id})">🗑</button>
+          </div>
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
 async function toggleAgent(id, newActive) {
   await sb.from('agents').update({active:newActive}).eq('id',id);
-  const a = allAgents.find(x=>x.id===id);
-  if (a) a.active = newActive;
+  const a=allAgents.find(x=>x.id===id);
+  if(a) a.active=newActive;
   renderAgentsMgr();
-  toast(newActive ? 'נציג הופעל' : 'נציג הושבת');
+  toast(newActive?'נציג הופעל ✓':'נציג הושבת');
 }
 
-function openAddAgent() { document.getElementById('modal-add-agent').classList.add('open'); }
+function openEditAgent(id) {
+  const a=allAgents.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('ea-id').value=id;
+  document.getElementById('ea-name').value=a.name;
+  document.getElementById('ea-pin').value='';
+  document.getElementById('edit-agent-title').textContent=`עריכת נציג — ${a.name}`;
+  document.querySelectorAll('#ea-depts input').forEach(cb=>{ cb.checked=(a.depts||[]).includes(cb.value); });
+  document.getElementById('modal-edit-agent').classList.add('open');
+}
+
+async function saveEditAgent() {
+  const id=parseInt(document.getElementById('ea-id').value);
+  const name=document.getElementById('ea-name').value.trim();
+  const pinVal=document.getElementById('ea-pin').value.trim();
+  const depts=[...document.querySelectorAll('#ea-depts input:checked')].map(c=>c.value);
+  if(!name){toast('יש למלא שם');return;}
+  if(pinVal&&pinVal.length!==4){toast('PIN חייב להיות 4 ספרות');return;}
+  const updates={name,depts};
+  if(pinVal) updates.pin=pinVal;
+  const {error}=await sb.from('agents').update(updates).eq('id',id);
+  if(error){toast('שגיאה: '+error.message);return;}
+  document.getElementById('modal-edit-agent').classList.remove('open');
+  await loadAgentsMgr();
+  toast('נציג עודכן ✓');
+}
+
+function openDeleteAgent(id) {
+  const a=allAgents.find(x=>x.id===id);
+  if(!a) return;
+  agentToDelete=id;
+  document.getElementById('del-agent-name').textContent=a.name;
+  document.getElementById('modal-del-agent').classList.add('open');
+}
+
+async function confirmDeleteAgent() {
+  if(!agentToDelete) return;
+  const {error}=await sb.from('agents').delete().eq('id',agentToDelete);
+  if(error){toast('שגיאה במחיקה');return;}
+  document.getElementById('modal-del-agent').classList.remove('open');
+  agentToDelete=null;
+  await loadAgentsMgr();
+  toast('נציג נמחק ✓');
+}
+
+function openAddAgent(){document.getElementById('modal-add-agent').classList.add('open');}
+
+function exportAgentsExcel() {
+  if(!allAgents.length){toast('אין נציגים לייצוא');return;}
+  const rows=allAgents.map((a,i)=>({
+    '#':i+1,'שם':a.name,'PIN':a.pin,
+    'פעילויות':(a.depts||[]).join(', '),
+    'סטטוס':a.active?'פעיל':'מושבת',
+    'טיפולים החודש':a._treated||0,
+    'כניסה אחרונה':a._lastLogin?new Date(a._lastLogin).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'}):'—'
+  }));
+  const ws=XLSX.utils.json_to_sheet(rows,{header:['#','שם','PIN','פעילויות','סטטוס','טיפולים החודש','כניסה אחרונה']});
+  ws['!cols']=[{wch:4},{wch:22},{wch:8},{wch:40},{wch:10},{wch:16},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'נציגים');
+  XLSX.writeFile(wb,`נציגים_${new Date().toLocaleDateString('he-IL').replace(/\//g,'-')}.xlsx`);
+  toast('הורד בהצלחה ✓');
+}
 
 async function saveNewAgent() {
   const name = document.getElementById('fa-name').value.trim();
@@ -942,20 +1161,24 @@ function renderSummary() {
 }
 
 function statusPicker(r) {
-  const ts = r.status_changed_at && r.status!=='טרם טופל'
-    ? (() => {
-        const d = new Date(r.status_changed_at);
-        const s = d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
-        return `<div class="status-ts ${r.status==='טופל'?'ts-done':'ts-miss'}" id="ts-${r.id}">${s}</div>`;
-      })()
-    : `<div class="status-ts" id="ts-${r.id}"></div>`;
+  let tsBlock = `<div class="status-ts" id="ts-${r.id}"></div>`;
+  if (r.status_changed_at && r.status !== 'טרם טופל') {
+    const d = new Date(r.status_changed_at);
+    const dateStr = d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'}) + ' ' +
+                    d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
+    const tsCls = r.status==='טופל' ? 'ts-done' : 'ts-miss';
+    const agentLine = r.handled_by
+      ? `<div class="status-ts" style="color:var(--text2);font-weight:600">👤 ${r.handled_by}</div>`
+      : '';
+    tsBlock = `<div class="status-ts ${tsCls}" id="ts-${r.id}">${dateStr}</div>${agentLine}`;
+  }
   return `<div>
     <div class="status-picker">
       <button class="sp-btn sp-wait${r.status==='טרם טופל'?' active':''}" onclick="changeStatus('${r.id}','טרם טופל','${r.status}',this)">טרם טופל</button>
       <button class="sp-btn sp-done${r.status==='טופל'?' active':''}" onclick="changeStatus('${r.id}','טופל','${r.status}',this)">טופל</button>
       <button class="sp-btn sp-miss${r.status==='אין מענה'?' active':''}" onclick="changeStatus('${r.id}','אין מענה','${r.status}',this)">אין מענה</button>
     </div>
-    ${ts}
+    ${tsBlock}
   </div>`;
 }
 
@@ -1167,31 +1390,46 @@ async function changeStatus(id, newVal, oldVal, btn) {
   const rec = records.find(r=>r.id===id);
   if (!rec) return;
   const now = new Date().toISOString();
-  const {error} = await sb.from('yirutim').update({status:newVal, status_changed_at:now}).eq('id',id);
+  const agentName = currentAgent ? currentAgent.name : null;
+  const updatePayload = {status:newVal, status_changed_at:now};
+  if (newVal !== 'טרם טופל') updatePayload.handled_by = agentName;
+  else updatePayload.handled_by = null;
+  const {error} = await sb.from('yirutim').update(updatePayload).eq('id',id);
   if (error){toast('שגיאה בעדכון');return;}
   // log history with agent name
   await sb.from('yirutim_history').insert([{
     yirutim_id:id, phone:rec.phone, name:rec.name,
     activity:rec.activity, old_status:oldVal, new_status:newVal,
     created_at:rec.created_at,
-    agent_name: currentAgent ? currentAgent.name : null
+    agent_name: agentName
   }]);
+  rec.status=newVal;
+  rec.status_changed_at=now;
+  rec.handled_by=updatePayload.handled_by;
   if (btn) {
     const picker = btn.closest('.status-picker');
     if (picker) {
       picker.querySelectorAll('.sp-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
     }
-    // update timestamp
+    // update timestamp + agent name live
     const tsEl = document.getElementById('ts-'+id);
     if (tsEl) {
+      const tsParent = tsEl.parentElement;
       if (newVal !== 'טרם טופל') {
         const d = new Date(now);
         const s = d.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
         tsEl.className = 'status-ts '+(newVal==='טופל'?'ts-done':'ts-miss');
         tsEl.textContent = s;
+        // add/update agent line
+        let agentEl = tsParent.querySelector('.agent-line');
+        if (!agentEl) { agentEl = document.createElement('div'); agentEl.className='status-ts agent-line'; tsParent.appendChild(agentEl); }
+        agentEl.style.color='var(--text2)'; agentEl.style.fontWeight='600';
+        agentEl.textContent = agentName ? `👤 ${agentName}` : '';
       } else {
         tsEl.className='status-ts'; tsEl.textContent='';
+        const agentEl = tsParent.querySelector('.agent-line');
+        if (agentEl) agentEl.textContent='';
       }
     }
   }
@@ -1258,6 +1496,8 @@ function closeAdd(){document.getElementById('modal-add').classList.remove('open'
 function closeDup(){document.getElementById('modal-dup').classList.remove('open');}
 document.getElementById('modal-add').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAdd();});
 document.getElementById('modal-dup').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDup();});
+document.getElementById('modal-edit-agent').addEventListener('click',e=>{if(e.target===e.currentTarget)e.target.classList.remove('open');});
+document.getElementById('modal-del-agent').addEventListener('click',e=>{if(e.target===e.currentTarget)e.target.classList.remove('open');});
 function clearSearch(id){document.getElementById(id).value='';renderTable();}
 
 function exportExcel(){
