@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v2.6</title>
+<title>מערכת יירוטים v2.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -318,6 +318,9 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
       <div class="form-group"><label>סיסמה</label><input id="mgr-password" type="password" placeholder="••••••••" style="direction:ltr" onkeydown="if(event.key==='Enter')doManagerLogin()"></div>
       <div class="login-error" id="mgr-error"></div>
       <button class="btn primary" style="width:100%;justify-content:center;font-size:15px;padding:12px;margin-top:0.5rem;" onclick="doManagerLogin()" id="mgr-login-btn">כניסה</button>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="doForgotPassword()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--accent);font-family:'Heebo',sans-serif;text-decoration:underline;">שכחתי סיסמה</button>
+      </div>
     </div>
 
     <!-- AGENT LOGIN -->
@@ -652,7 +655,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
   <div class="modal">
     <h3>הוספת יירוט חדש</h3>
     <div class="form-group"><label>שם לקוח</label><input id="f-name" placeholder="ישראל ישראלי"></div>
-    <div class="form-group"><label>טלפון</label><input id="f-phone" placeholder="05X-XXXXXXX" type="tel"></div>
+    <div class="form-group"><label>טלפון</label><input id="f-phone" placeholder="0501234567" type="tel" inputmode="numeric" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)"></div>
     <div class="form-group"><label>פעילות</label>
       <select id="f-activity">
         <option>כללית אקטיב</option><option>עובדים בריא</option>
@@ -731,6 +734,8 @@ let rtChannel = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
+  // Always sign out existing session — force fresh login every time
+  await sb.auth.signOut();
   // Load agents for login list
   const {data} = await sb.from('agents').select('*').eq('active', true).order('name');
   allAgents = data || [];
@@ -761,6 +766,33 @@ function showAgentLogin() {
 }
 
 // ===== MANAGER LOGIN (Supabase Auth) =====
+async function doForgotPassword() {
+  const email = document.getElementById('mgr-email').value.trim();
+  const errEl = document.getElementById('mgr-error');
+  if (!email) {
+    errEl.textContent = 'הכנס מייל תחילה';
+    errEl.style.display = 'block'; return;
+  }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+  if (error) {
+    errEl.textContent = 'שגיאה בשליחת המייל';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  // show success
+  document.getElementById('mgr-error').style.display = 'none';
+  toast('מייל לאיפוס סיסמה נשלח ✓');
+  // show green message
+  const btn = document.getElementById('mgr-login-btn');
+  const msg = document.createElement('div');
+  msg.style.cssText = 'text-align:center;font-size:13px;color:var(--green);margin-top:8px;font-weight:500;';
+  msg.textContent = `מייל נשלח ל-${email} — בדוק את תיבת הדואר`;
+  btn.parentElement.appendChild(msg);
+  setTimeout(()=>msg.remove(), 5000);
+}
+
 async function doManagerLogin() {
   const email = document.getElementById('mgr-email').value.trim();
   const password = document.getElementById('mgr-password').value;
@@ -1784,7 +1816,16 @@ async function saveAdd() {
   const activity=document.getElementById('f-activity').value;
   const note=document.getElementById('f-note').value.trim();
   if (!name||!phone){toast('יש למלא שם וטלפון');return;}
-  const clean=phone.replace(/[\s\-]/g,'');
+  // Validate phone — digits only, exactly 10
+  const cleanPhone = phone.replace(/[\s\-]/g,'');
+  if (!/^\d{10}$/.test(cleanPhone)){
+    toast('מספר טלפון חייב להכיל בדיוק 10 ספרות');
+    document.getElementById('f-phone').focus();
+    document.getElementById('f-phone').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('f-phone').style.borderColor='',2000);
+    return;
+  }
+  const clean=cleanPhone;
   const dup=records.find(r=>r.status==='טרם טופל'&&r.phone.replace(/[\s\-]/g,'')=== clean);
   if (dup){
     const dt=new Date(dup.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
