@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v2.5</title>
+<title>מערכת יירוטים v2.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -274,7 +274,10 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 .agent-empty svg{width:48px;height:48px;margin:0 auto 14px;display:block;opacity:0.2;}
 .agent-empty h3{font-size:18px;font-weight:600;color:var(--text2);margin-bottom:6px;}
 .agent-empty p{font-size:14px;}
-.agent-sla-warn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;background:var(--sla-bg);color:var(--sla-text);border:1px solid var(--sla-border);}
+.badge-priority-high{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:#fff0f0;color:#dc3545;border:1px solid rgba(220,53,69,0.3);}
+.badge-priority-high::before{content:'🔴';font-size:10px;}
+.agent-card.priority-high{border-right:4px solid #dc3545;background:#fffafa;}
+.agent-card.priority-high .agent-name::before{content:'🔴 ';}
 </style>
 </head>
 <body>
@@ -657,6 +660,19 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
       </select>
     </div>
     <div class="form-group"><label>הערה (אופציונלי)</label><input id="f-note" placeholder="פרטים נוספים"></div>
+    <div class="form-group">
+      <label>עדיפות</label>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:7px;padding:10px 16px;border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;flex:1;font-size:14px;font-weight:500;transition:all 0.15s;" id="priority-normal-label">
+          <input type="radio" name="priority" id="priority-normal" value="רגילה" checked style="width:16px;height:16px;cursor:pointer;" onchange="updatePriorityStyle()">
+          <span>רגילה</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;padding:10px 16px;border:1.5px solid var(--border2);border-radius:var(--radius);cursor:pointer;flex:1;font-size:14px;font-weight:500;transition:all 0.15s;" id="priority-high-label">
+          <input type="radio" name="priority" id="priority-high" value="גבוהה" style="width:16px;height:16px;cursor:pointer;" onchange="updatePriorityStyle()">
+          <span>🔴 גבוהה</span>
+        </label>
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeAdd()">ביטול</button>
       <button class="btn primary" onclick="saveAdd()" id="save-btn">שמור</button>
@@ -860,8 +876,15 @@ async function loadRecords(silent=false) {
 async function loadAgentRecords(silent=false) {
   const {data} = await sb.from('yirutim').select('*')
     .eq('status','טרם טופל')
-    .order('created_at',{ascending:true}); // oldest first
-  records = data||[];
+    .order('created_at',{ascending:true});
+  // Sort: high priority first, then by date (oldest first)
+  const sorted = (data||[]).sort((a,b)=>{
+    const ap = a.priority==='גבוהה' ? 0 : 1;
+    const bp = b.priority==='גבוהה' ? 0 : 1;
+    if (ap !== bp) return ap - bp;
+    return new Date(a.created_at) - new Date(b.created_at);
+  });
+  records = sorted;
   document.getElementById('agent-sync').textContent = 'עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
   renderAgent();
 }
@@ -926,10 +949,11 @@ function renderAgent() {
     const dateStr = new Date(r.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
     let ageLabel = days===0?'היום':days===1?'אתמול':`${days} ימים`;
     let ageCls = days<=1?'age-0':days===2?'age-2':days===3?'age-3':days<=5?'age-4':'age-5';
-    return `<div class="agent-card${isOverdue?' sla-card-row':''}" id="acard-${r.id}">
+    const isHigh = r.priority === 'גבוהה';
+    return `<div class="agent-card${isOverdue?' sla-card-row':''}${isHigh?' priority-high':''}" id="acard-${r.id}">
       <div class="agent-card-top">
         <div>
-          <div class="agent-name">${r.name} ${isOverdue?'<span class="agent-sla-warn">⏱ SLA</span>':''}</div>
+          <div class="agent-name">${r.name} ${isOverdue?'<span class="agent-sla-warn">⏱ SLA</span>':''}${isHigh?'<span class="badge-priority-high">עדיפות גבוהה</span>':''}</div>
           <div class="agent-phone">${r.phone}</div>
         </div>
         <span class="age-badge ${ageCls}">${ageLabel}</span>
@@ -1504,7 +1528,7 @@ function renderTable() {
     const isOverdue=overdueIds.has(r.id);
     return `<tr${isOverdue?' class="sla-row"':''}>
       <td style="color:var(--text3);font-size:12px">${i+1}</td>
-      <td style="font-weight:600">${r.name}${isOverdue?'<span class="sla-badge">⏱ SLA</span>':''}</td>
+      <td style="font-weight:600">${r.name}${isOverdue?'<span class="sla-badge">⏱ SLA</span>':''}${r.priority==='גבוהה'?'<span class="badge-priority-high" style="margin-right:4px">גבוהה</span>':''}</td>
       <td><span class="phone-cell">${r.phone}</span></td>
       <td><span class="b-act">${r.activity}</span></td>
       <td style="font-size:12px;color:var(--text3)">${dateStr}</td>
@@ -1767,8 +1791,9 @@ async function saveAdd() {
     document.getElementById('dup-info').innerHTML=`<div><strong>שם:</strong> ${dup.name}</div><div><strong>טלפון:</strong> ${dup.phone}</div><div><strong>פעילות:</strong> ${dup.activity}</div><div><strong>תאריך:</strong> ${dt}</div>`;
     closeAdd(); document.getElementById('modal-dup').classList.add('open'); return;
   }
+  const priority = document.querySelector('input[name="priority"]:checked')?.value || 'רגילה';
   document.getElementById('save-btn').textContent='שומר...';
-  const {data,error}=await sb.from('yirutim').insert([{name,phone,activity,note,status:'טרם טופל'}]).select();
+  const {data,error}=await sb.from('yirutim').insert([{name,phone,activity,note,status:'טרם טופל',priority}]).select();
   document.getElementById('save-btn').textContent='שמור';
   if (error){toast('שגיאה: '+error.message);return;}
   // log creation in history
@@ -1780,6 +1805,8 @@ async function saveAdd() {
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('f-note').value='';
+  document.getElementById('priority-normal').checked=true;
+  updatePriorityStyle();
   records.unshift(data[0]);
   render(); toast('יירוט נוסף בהצלחה ✓');
 }
@@ -1799,6 +1826,13 @@ function switchTab(tab) {
 
 // ---- UTILS ----
 function openAdd(){document.getElementById('modal-add').classList.add('open');}
+function updatePriorityStyle(){
+  const isHigh = document.getElementById('priority-high').checked;
+  document.getElementById('priority-normal-label').style.borderColor = !isHigh ? 'var(--accent)' : 'var(--border2)';
+  document.getElementById('priority-normal-label').style.background = !isHigh ? 'var(--accent-bg)' : '';
+  document.getElementById('priority-high-label').style.borderColor = isHigh ? '#dc3545' : 'var(--border2)';
+  document.getElementById('priority-high-label').style.background = isHigh ? '#fff0f0' : '';
+}
 function closeAdd(){document.getElementById('modal-add').classList.remove('open');}
 function closeDup(){document.getElementById('modal-dup').classList.remove('open');}
 document.getElementById('modal-add').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAdd();});
