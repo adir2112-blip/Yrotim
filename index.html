@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v3.2</title>
+<title>מערכת יירוטים v3.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -429,7 +429,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <thead><tr>
           <th style="width:36px">#</th>
           <th>שם לקוח</th><th>טלפון</th><th>פעילות</th>
-          <th>תאריך</th><th>גיל יירוט</th><th>סטטוס</th>
+          <th>תאריך</th><th>גיל יירוט</th><th>גורם מיירט</th><th>סטטוס</th>
           <th style="width:44px"></th>
         </tr></thead>
         <tbody id="tbl-body"></tbody>
@@ -579,7 +579,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
       <select id="af-dept" onchange="renderAgentsMgr()" style="padding:6px 12px;border:1px solid var(--border2);border-radius:20px;font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text2);cursor:pointer;">
         <option value="">כל הפעילויות</option>
         <option>כללית אקטיב</option><option>עובדים בריא</option>
-        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option>
+        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option><option>איכילוב וול</option>
       </select>
     </div>
 
@@ -608,6 +608,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="לאומית FIT" style="width:16px;height:16px;cursor:pointer"> לאומית FIT</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף לעמית" style="width:16px;height:16px;cursor:pointer"> מעוף לעמית</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מאוחדת" style="width:16px;height:16px;cursor:pointer"> מאוחדת</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="איכילוב וול" style="width:16px;height:16px;cursor:pointer"> איכילוב וול</label>
       </div>
     </div>
     <div class="modal-actions">
@@ -643,6 +644,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="לאומית FIT" style="width:16px;height:16px;cursor:pointer"> לאומית FIT</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף לעמית" style="width:16px;height:16px;cursor:pointer"> מעוף לעמית</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מאוחדת" style="width:16px;height:16px;cursor:pointer"> מאוחדת</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="איכילוב וול" style="width:16px;height:16px;cursor:pointer"> איכילוב וול</label>
       </div>
     </div>
     <div class="modal-actions">
@@ -659,7 +661,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     <div class="form-group"><label>פעילות</label>
       <select id="f-activity">
         <option>כללית אקטיב</option><option>עובדים בריא</option>
-        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option>
+        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option><option>איכילוב וול</option>
       </select>
     </div>
     <div class="form-group"><label>הערה (אופציונלי)</label><input id="f-note" placeholder="פרטים נוספים"></div>
@@ -722,7 +724,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 <script>
 const SB_URL = 'https://qyqkimpaffhizouuwdko.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5cWtpbXBhZmZoaXpvdXV3ZGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODUxMzUsImV4cCI6MjA5NDg2MTEzNX0.zlIo9vTfWKhpSHeTHqRExTnWtAuJLsZjK_Hlii1Oa_c';
-const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת'];
+const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת','איכילוב וול'];
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
 
@@ -731,16 +733,34 @@ let agentFilter = 'all';
 let currentAgent = null;
 let allAgents = [];
 let rtChannel = null;
+let currentManagerName = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
-  // Always sign out existing session — force fresh login every time
-  await sb.auth.signOut();
   // Load agents for login list
   const {data} = await sb.from('agents').select('*').eq('active', true).order('name');
   allAgents = data || [];
   populateAgentList(allAgents);
-  // Always show unified login screen first
+
+  // Try to restore existing manager session (for TV / always-on mode)
+  const { data: sessionData } = await sb.auth.getSession();
+  if (sessionData?.session?.user) {
+    const email = sessionData.session.user.email;
+    const { data: mgr } = await sb.from('managers').select('*').eq('email', email).eq('active', true).single();
+    if (mgr) {
+      currentManagerName = mgr.name || email.split('@')[0];
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('sync-status').textContent = `שלום, ${currentManagerName}`;
+      loadRecords();
+      if (rtChannel) sb.removeChannel(rtChannel);
+      rtChannel = sb.channel('rt-mgr-'+Date.now()).on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
+      setInterval(()=>loadRecords(true), 30000);
+      return;
+    }
+  }
+
+  // No session — show login
   document.getElementById('app').style.display = 'none';
   document.getElementById('agent-app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'block';
@@ -814,14 +834,15 @@ async function doManagerLogin() {
     errEl.textContent = 'אין הרשאת כניסה למנהל';
     errEl.style.display = 'block'; return;
   }
+  currentManagerName = mgr.name || email.split('@')[0];
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   // show manager name in nav
-  document.getElementById('sync-status').textContent = `שלום, ${mgr.name||email.split('@')[0]}`;
+  document.getElementById('sync-status').textContent = `שלום, ${currentManagerName}`;
   loadRecords();
   if (rtChannel) sb.removeChannel(rtChannel);
   rtChannel = sb.channel('rt-mgr-'+Date.now()).on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
-  setInterval(()=>loadRecords(true), 60000);
+  setInterval(()=>loadRecords(true), 30000);
 }
 
 // ===== AGENT LIST =====
@@ -887,7 +908,7 @@ async function doLogin() {
   loadAgentRecords();
   if (rtChannel) sb.removeChannel(rtChannel);
   rtChannel = sb.channel('rt-agent-'+Date.now()).on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadAgentRecords(true)).subscribe();
-  setInterval(()=>loadAgentRecords(true), 60000);
+  setInterval(()=>loadAgentRecords(true), 30000);
 }
 
 async function loadRecords(silent=false) {
@@ -1570,6 +1591,7 @@ function renderTable() {
       <td><span class="b-act">${r.activity}</span></td>
       <td style="font-size:12px;color:var(--text3)">${dateStr}</td>
       <td>${ageBadge(r.created_at)}</td>
+      <td style="font-size:12px;color:var(--text2);font-weight:500">${r.intercepted_by||'—'}</td>
       <td>${statusPicker(r)}</td>
       <td><button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg></button></td>
     </tr>`;
@@ -1649,13 +1671,24 @@ function renderStatusTab() {
   document.getElementById('status-table').innerHTML=`
     <div class="st-row st-head">
       <div class="st-cell">פעילות</div>
-      <div class="st-cell" style="text-align:center">טרם טופלו</div>
+      <div class="st-cell" style="text-align:center;color:var(--text);font-weight:800;font-size:13px;letter-spacing:0.04em;">⚡ טרם טופלו</div>
       <div class="st-cell" style="text-align:center">טופלו</div>
       <div class="st-cell" style="text-align:center">אין מענה</div>
       <div class="st-cell" style="text-align:center">סה"כ</div>
       <div class="st-cell">יירוט ישן ביותר</div>
     </div>
-    ${rows.map(r=>`
+    ${rows.map(r=>{
+      // wait column color
+      const wc = r.wait<=20
+        ? {bg:'#eaf7f1',border:'#17a96e',color:'#0d6e47',shadow:'0 0 0 2px rgba(23,169,110,0.2)'}
+        : r.wait<=40
+        ? {bg:'#fff8ec',border:'#d97706',color:'#92400e',shadow:'0 0 0 2px rgba(217,119,6,0.2)'}
+        : {bg:'#fff0f0',border:'#dc3545',color:'#7f1d1d',shadow:'0 0 0 3px rgba(220,53,69,0.25)'};
+      const waitCell = `<div class="st-cell" style="text-align:center;background:${wc.bg};border-right:3px solid ${wc.border};border-left:3px solid ${wc.border};box-shadow:${wc.shadow};">
+        <span style="font-size:22px;font-weight:800;color:${wc.color};line-height:1;">${r.wait}</span>
+        ${r.wait>40?`<div style="font-size:10px;font-weight:700;color:${wc.color};margin-top:2px;">⚠️ עומס</div>`:r.wait>20?`<div style="font-size:10px;color:${wc.color};margin-top:2px;">⚠ גבוה</div>`:''}
+      </div>`;
+      return `
     <div class="st-row${r.isOverdue?' sla-over':''}">
       <div class="st-cell">
         <div class="activity-name">${r.act}${r.slaCount>0?` <span class="sla-badge">⏱ ${r.slaCount}</span>`:''}</div>
@@ -1665,12 +1698,13 @@ function renderStatusTab() {
           <div class="mini-seg" style="width:${Math.max(r.mPct,5)}px;background:#9399b0;opacity:0.6"></div>
         </div>
       </div>
-      <div class="st-cell" style="text-align:center"><span class="num-blue">${r.wait}</span></div>
+      ${waitCell}
       <div class="st-cell" style="text-align:center"><span class="num-green">${r.done}</span></div>
       <div class="st-cell" style="text-align:center"><span class="num-gray">${r.miss}</span></div>
       <div class="st-cell" style="text-align:center;color:var(--text2);font-weight:500">${r.total}</div>
       <div class="st-cell">${r.oldestHTML}</div>
-    </div>`).join('')}
+    </div>`;
+    }).join('')}
   `;
 }
 
@@ -1845,8 +1879,9 @@ async function saveAdd() {
     closeAdd(); document.getElementById('modal-dup').classList.add('open'); return;
   }
   const priority = document.querySelector('input[name="priority"]:checked')?.value || 'רגילה';
+  const interceptedBy = currentManagerName || null;
   document.getElementById('save-btn').textContent='שומר...';
-  const {data,error}=await sb.from('yirutim').insert([{name,phone,activity,note,status:'טרם טופל',priority}]).select();
+  const {data,error}=await sb.from('yirutim').insert([{name,phone,activity,note,status:'טרם טופל',priority,intercepted_by:interceptedBy}]).select();
   document.getElementById('save-btn').textContent='שמור';
   if (error){toast('שגיאה: '+error.message);return;}
   // log creation in history
@@ -1963,18 +1998,29 @@ async function renderDaily() {
       <div class="st-cell" style="text-align:center">נוספו</div>
       <div class="st-cell" style="text-align:center">טופלו</div>
       <div class="st-cell" style="text-align:center">אין מענה</div>
-      <div class="st-cell" style="text-align:center">טרם טופל</div>
+      <div class="st-cell" style="text-align:center;color:var(--text);font-weight:800;font-size:13px;">⚡ טרם טופל</div>
       <div class="st-cell" style="text-align:center">סה"כ</div>
     </div>
-    ${rows.map(r=>`
+    ${rows.map(r=>{
+      const wc = r.pending<=20
+        ? {bg:'#eaf7f1',border:'#17a96e',color:'#0d6e47',shadow:'0 0 0 2px rgba(23,169,110,0.2)'}
+        : r.pending<=40
+        ? {bg:'#fff8ec',border:'#d97706',color:'#92400e',shadow:'0 0 0 2px rgba(217,119,6,0.2)'}
+        : {bg:'#fff0f0',border:'#dc3545',color:'#7f1d1d',shadow:'0 0 0 3px rgba(220,53,69,0.25)'};
+      const pendingCell = `<div class="st-cell" style="text-align:center;background:${wc.bg};border-right:3px solid ${wc.border};border-left:3px solid ${wc.border};box-shadow:${wc.shadow};">
+        <span style="font-size:22px;font-weight:800;color:${wc.color};line-height:1;">${r.pending}</span>
+        ${r.pending>40?`<div style="font-size:10px;font-weight:700;color:${wc.color};margin-top:2px;">⚠️ עומס</div>`:r.pending>20?`<div style="font-size:10px;color:${wc.color};margin-top:2px;">⚠ גבוה</div>`:''}
+      </div>`;
+      return `
     <div class="st-row" style="grid-template-columns:1.6fr 100px 100px 100px 100px 100px">
       <div class="st-cell"><div class="activity-name">${r.act}</div></div>
       <div class="st-cell" style="text-align:center"><span class="num-blue">${r.added}</span></div>
       <div class="st-cell" style="text-align:center"><span class="num-green">${r.done}</span></div>
       <div class="st-cell" style="text-align:center"><span class="num-gray">${r.miss}</span></div>
-      <div class="st-cell" style="text-align:center"><span class="badge b-wait" style="font-size:13px">${r.pending}</span></div>
+      ${pendingCell}
       <div class="st-cell" style="text-align:center;font-weight:600;color:var(--text2)">${r.total}</div>
-    </div>`).join('')}
+    </div>`;
+    }).join('')}
     <div class="st-row" style="grid-template-columns:1.6fr 100px 100px 100px 100px 100px;background:var(--bg3)">
       <div class="st-cell" style="font-weight:700;color:var(--text)">סה"כ</div>
       <div class="st-cell" style="text-align:center;font-weight:700;color:var(--accent);font-size:17px">${rows.reduce((s,r)=>s+r.added,0)}</div>
