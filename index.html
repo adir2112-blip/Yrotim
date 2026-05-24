@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v3.5</title>
+<title>מערכת יירוטים v3.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1582,7 +1582,7 @@ function renderTable() {
   }
   tbody.innerHTML=data.map((r,i)=>{
     const dt=new Date(r.created_at);
-    const dateStr=dt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
+    const dateStr=dt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+dt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
     const isOverdue=overdueIds.has(r.id);
     return `<tr${isOverdue?' class="sla-row"':''}>
       <td style="color:var(--text3);font-size:12px">${i+1}</td>
