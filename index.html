@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v3.6</title>
+<title>מערכת יירוטים v3.7</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -474,9 +475,9 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <button class="filter-chip"        id="perf-year"    onclick="setPerfPeriod('year')">שנה</button>
         <button class="filter-chip"        id="perf-custom"  onclick="setPerfPeriod('custom')">תאריך ספציפי</button>
         <div id="perf-custom-dates" style="display:none;gap:8px;align-items:center;flex-wrap:wrap;">
-          <input type="date" id="perf-from" onchange="loadAgentPerf()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);">
+          <input type="date" id="perf-from" onchange="loadAgentPerf();loadInterceptorPerf()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);">
           <span style="font-size:13px;color:var(--text3)">עד</span>
-          <input type="date" id="perf-to" onchange="loadAgentPerf()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);">
+          <input type="date" id="perf-to" onchange="loadAgentPerf();loadInterceptorPerf()" style="padding:6px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text);">
         </div>
       </div>
 
@@ -485,6 +486,16 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 
       <!-- table -->
       <div class="status-table-wrap" id="perf-table"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+    </div>
+
+    <!-- INTERCEPTORS PERFORMANCE SECTION -->
+    <div style="margin-top:2.5rem;">
+      <div style="margin-bottom:1.25rem;">
+        <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:2px;">ביצועי מיירטים לפי תקופה</div>
+        <div style="font-size:13px;color:var(--text3);">כמה יירוטים כל משתמש יירט באותה תקופה</div>
+      </div>
+      <div class="summary-row" id="interceptor-summary-cards" style="margin-bottom:1.25rem;"></div>
+      <div class="status-table-wrap" id="interceptor-table"><div class="loading"><div class="spinner"></div>טוען...</div></div>
     </div>
   </div>
 
@@ -1349,7 +1360,7 @@ function setPerfPeriod(p) {
   });
   const customDates = document.getElementById('perf-custom-dates');
   if (customDates) customDates.style.display = p==='custom' ? 'flex' : 'none';
-  if (p !== 'custom') loadAgentPerf();
+  if (p !== 'custom') { loadAgentPerf(); loadInterceptorPerf(); }
 }
 
 async function loadAgentPerf() {
@@ -1442,6 +1453,60 @@ function getPeriodLabel() {
   const labels = { today:'היום', week:'שבוע אחרון', month:'חודש אחרון', '3month':'3 חודשים', '6month':'חצי שנה', year:'שנה אחרונה' };
   if (perfPeriod === 'custom') return `${fmt(from)} — ${fmt(to)}`;
   return labels[perfPeriod] || '';
+}
+
+async function loadInterceptorPerf() {
+  const tableEl = document.getElementById('interceptor-table');
+  if (!tableEl) return;
+  tableEl.innerHTML = '<div class="loading"><div class="spinner"></div>טוען...</div>';
+  const { from, to } = getPerfDates();
+  const { data: intData } = await sb.from('yirutim')
+    .select('intercepted_by, activity')
+    .gte('created_at', from.toISOString())
+    .lte('created_at', to.toISOString())
+    .not('intercepted_by', 'is', null);
+  const rows_raw = intData || [];
+  const map = {};
+  rows_raw.forEach(r => {
+    if (!map[r.intercepted_by]) map[r.intercepted_by] = { name: r.intercepted_by, total: 0 };
+    map[r.intercepted_by].total++;
+  });
+  const rows = Object.values(map).sort((a,b) => b.total - a.total);
+  const totalAll = rows.reduce((s,r) => s+r.total, 0);
+  const top = rows[0];
+  document.getElementById('interceptor-summary-cards').innerHTML = `
+    <div class="s-card"><div class="s-label">סה"כ יירוטים</div><div class="s-val c-blue">${totalAll}</div></div>
+    <div class="s-card"><div class="s-label">מיירטים פעילים</div><div class="s-val c-gray">${rows.length}</div></div>
+    ${top?`<div class="s-card" style="background:var(--green-bg);border-color:var(--green-border)"><div class="s-label">מוביל התקופה</div><div style="font-size:15px;font-weight:700;color:var(--green);margin-top:4px">${top.name}</div><div class="s-sub">${top.total} יירוטים</div></div>`:''}
+  `;
+  if (!rows.length) { tableEl.innerHTML='<div class="empty-state" style="padding:2rem;text-align:center;color:var(--text3)">אין נתונים לתקופה זו</div>'; return; }
+  tableEl.innerHTML = `
+    <div class="st-row st-head" style="grid-template-columns:36px 1.6fr 120px 120px">
+      <div class="st-cell">#</div>
+      <div class="st-cell">שם מיירט</div>
+      <div class="st-cell" style="text-align:center">יירוטים</div>
+      <div class="st-cell" style="text-align:center">% מסה"כ</div>
+    </div>
+    ${rows.map((r,i) => {
+      const pct = totalAll ? Math.round(r.total/totalAll*100) : 0;
+      const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+      return `<div class="st-row" style="grid-template-columns:36px 1.6fr 120px 120px">
+        <div class="st-cell" style="color:var(--text3);font-size:13px">${medal||i+1}</div>
+        <div class="st-cell" style="font-weight:600;font-size:15px">${r.name}</div>
+        <div class="st-cell" style="text-align:center"><span class="num-blue">${r.total}</span></div>
+        <div class="st-cell" style="text-align:center">
+          <span style="font-weight:600;color:var(--text2)">${pct}%</span>
+          <div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px"></div></div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="st-row" style="grid-template-columns:36px 1.6fr 120px 120px;background:var(--bg3)">
+      <div class="st-cell"></div>
+      <div class="st-cell" style="font-weight:700;color:var(--text)">סה"כ</div>
+      <div class="st-cell" style="text-align:center;font-weight:700;color:var(--accent);font-size:17px">${totalAll}</div>
+      <div class="st-cell"></div>
+    </div>
+  `;
 }
 
 function exportAgentPerfExcel() {
@@ -1906,7 +1971,7 @@ function switchTab(tab) {
     document.getElementById('view-'+t).style.display=t===tab?'block':'none';
     document.getElementById('tab-'+t).className='tab-btn'+(t===tab?' active':'');
   });
-  if (tab==='status') { renderStatusTab(); loadAgentPerf(); }
+  if (tab==='status') { renderStatusTab(); loadAgentPerf(); loadInterceptorPerf(); }
   if (tab==='history') renderHistory();
   if (tab==='daily') { setDailyToday(); }
   if (tab==='agentsmgr') loadAgentsMgr();
