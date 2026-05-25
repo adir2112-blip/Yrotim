@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v3.7</title>
+<title>מערכת יירוטים v3.9</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -595,6 +595,15 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     </div>
 
     <div id="agents-mgr-list"><div class="loading"><div class="spinner"></div>טוען...</div></div>
+
+    <!-- QUOTA MANAGEMENT - super admin only -->
+    <div id="quota-mgr-section" style="display:none;margin-top:2rem;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+        <div style="font-size:17px;font-weight:700;color:var(--text)">👑 ניהול מגבלות יירוטים</div>
+        <span style="font-size:12px;background:var(--amber-bg);color:var(--amber);padding:2px 10px;border-radius:20px;border:1px solid rgba(217,119,6,0.3);font-weight:600">סופר-אדמין</span>
+      </div>
+      <div class="status-table-wrap" id="quota-table"></div>
+    </div>
   </div>
 </div>
 
@@ -664,6 +673,32 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     </div>
   </div>
 </div>
+<!-- QUOTA APPROVAL MODAL -->
+<div class="overlay" id="modal-quota">
+  <div class="modal" style="border:1.5px solid var(--red-border);">
+    <h3 style="color:var(--red);display:flex;align-items:center;gap:8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      הגבלת יירוטים
+    </h3>
+    <p id="quota-msg" style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:1rem;"></p>
+    <div id="quota-super-section" style="display:none">
+      <div style="background:var(--amber-bg);border:1px solid rgba(217,119,6,0.3);border-radius:var(--radius);padding:12px 14px;margin-bottom:1rem;font-size:13px;color:var(--amber);">
+        👑 כסופר-אדמין ביכולתך לפתוח +50 יירוטים נוספים
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="document.getElementById('modal-quota').classList.remove('open')">ביטול</button>
+        <button class="btn primary" onclick="approveExtraQuota()" style="background:var(--amber);border-color:var(--amber);">פתח +50 יירוטים</button>
+      </div>
+    </div>
+    <div id="quota-blocked-section" style="display:none">
+      <p style="font-size:13px;color:var(--text3);">יש לפנות לאדיר, בקי או הודיה לפתיחת הרשאה נוספת.</p>
+      <div class="modal-actions">
+        <button class="btn primary" onclick="document.getElementById('modal-quota').classList.remove('open')">הבנתי</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="modal-add">
   <div class="modal">
     <h3>הוספת יירוט חדש</h3>
@@ -745,6 +780,8 @@ let currentAgent = null;
 let allAgents = [];
 let rtChannel = null;
 let currentManagerName = null;
+let isSuperAdmin = false;
+let quotas = {}; // { activity: { quota, extra_quota }, 'כלל': {...} }
 
 window.addEventListener('DOMContentLoaded', async () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
@@ -760,9 +797,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     const { data: mgr } = await sb.from('managers').select('*').eq('email', email).eq('active', true).single();
     if (mgr) {
       currentManagerName = mgr.name || email.split('@')[0];
+      isSuperAdmin = mgr.is_super_admin || false;
+      await loadQuotas();
       document.getElementById('app').style.display = 'block';
       document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('sync-status').textContent = `שלום, ${currentManagerName}`;
+      document.getElementById('sync-status').textContent = `שלום, ${currentManagerName}${isSuperAdmin?' 👑':''}`;
       loadRecords();
       if (rtChannel) sb.removeChannel(rtChannel);
       rtChannel = sb.channel('rt-mgr-'+Date.now()).on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
@@ -846,10 +885,11 @@ async function doManagerLogin() {
     errEl.style.display = 'block'; return;
   }
   currentManagerName = mgr.name || email.split('@')[0];
+  isSuperAdmin = mgr.is_super_admin || false;
+  await loadQuotas();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  // show manager name in nav
-  document.getElementById('sync-status').textContent = `שלום, ${currentManagerName}`;
+  document.getElementById('sync-status').textContent = `שלום, ${currentManagerName}${isSuperAdmin?' 👑':''}`;
   loadRecords();
   if (rtChannel) sb.removeChannel(rtChannel);
   rtChannel = sb.channel('rt-mgr-'+Date.now()).on('postgres_changes',{event:'*',schema:'public',table:'yirutim'},()=>loadRecords(true)).subscribe();
@@ -1945,6 +1985,9 @@ async function saveAdd() {
   }
   const priority = document.querySelector('input[name="priority"]:checked')?.value || 'רגילה';
   const interceptedBy = currentManagerName || null;
+  // Check quota before saving
+  const quotaOk = await checkQuota(activity);
+  if (!quotaOk) return;
   document.getElementById('save-btn').textContent='שומר...';
   const {data,error}=await sb.from('yirutim').insert([{name,phone,activity,note,status:'טרם טופל',priority,intercepted_by:interceptedBy}]).select();
   document.getElementById('save-btn').textContent='שמור';
@@ -1974,11 +2017,140 @@ function switchTab(tab) {
   if (tab==='status') { renderStatusTab(); loadAgentPerf(); loadInterceptorPerf(); }
   if (tab==='history') renderHistory();
   if (tab==='daily') { setDailyToday(); }
-  if (tab==='agentsmgr') loadAgentsMgr();
+  if (tab==='agentsmgr') {
+    loadAgentsMgr();
+    if (isSuperAdmin) {
+      document.getElementById('quota-mgr-section').style.display = 'block';
+      renderQuotaMgr();
+    }
+  }
 }
 
-// ---- UTILS ----
-function openAdd(){document.getElementById('modal-add').classList.add('open');}
+function renderQuotaMgr() {
+  const container = document.getElementById('quota-table');
+  if (!container) return;
+  const allActs = [...ACTIVITIES, 'כלל'];
+  container.innerHTML = `
+    <div class="st-row st-head" style="grid-template-columns:1.4fr 100px 100px 120px 140px">
+      <div class="st-cell">פעילות / כלל</div>
+      <div class="st-cell" style="text-align:center">מגבלה בסיס</div>
+      <div class="st-cell" style="text-align:center">תוספות שאושרו</div>
+      <div class="st-cell" style="text-align:center">מגבלה נוכחית</div>
+      <div class="st-cell" style="text-align:center">שינוי מגבלה בסיס</div>
+    </div>
+    ${allActs.map(act => {
+      const q = quotas[act] || {quota:100,extra_quota:0};
+      const effective = q.quota + q.extra_quota;
+      const current = act==='כלל'
+        ? records.filter(r=>r.status==='טרם טופל').length
+        : records.filter(r=>r.activity===act && r.status==='טרם טופל').length;
+      const pct = effective ? Math.round(current/effective*100) : 0;
+      const barColor = pct>=100?'var(--red)':pct>=75?'var(--amber)':'var(--green)';
+      return `<div class="st-row" style="grid-template-columns:1.4fr 100px 100px 120px 140px">
+        <div class="st-cell">
+          <div style="font-weight:600;font-size:14px">${act==='כלל'?'🌐 כלל הפעילויות':act}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">פתוחים כעת: ${current}</div>
+          <div style="height:4px;background:var(--bg4);border-radius:2px;margin-top:6px;overflow:hidden;max-width:120px">
+            <div style="height:100%;width:${Math.min(pct,100)}%;background:${barColor};border-radius:2px;transition:width 0.3s"></div>
+          </div>
+        </div>
+        <div class="st-cell" style="text-align:center;font-weight:600">${q.quota}</div>
+        <div class="st-cell" style="text-align:center;color:var(--amber);font-weight:600">+${q.extra_quota}</div>
+        <div class="st-cell" style="text-align:center;font-weight:700;font-size:16px;color:${pct>=100?'var(--red)':pct>=75?'var(--amber)':'var(--text)'}">${effective}</div>
+        <div class="st-cell" style="text-align:center">
+          <div style="display:flex;align-items:center;gap:6px;justify-content:center">
+            <input type="number" min="1" max="9999" value="${q.quota}" id="qinput-${act.replace(/\s/g,'_')}" style="width:65px;padding:5px 8px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg3);color:var(--text);text-align:center">
+            <button onclick="updateQuotaBase('${act}')" class="btn primary" style="padding:5px 10px;font-size:12px;">שמור</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+async function updateQuotaBase(activity) {
+  const inputId = 'qinput-'+activity.replace(/\s/g,'_');
+  const val = parseInt(document.getElementById(inputId)?.value);
+  if (!val || val < 1) { toast('ערך לא תקין'); return; }
+  await sb.from('activity_quotas').upsert({
+    activity, quota: val, extra_quota: 0,
+    updated_by: currentManagerName, updated_at: new Date().toISOString()
+  });
+  if (!quotas[activity]) quotas[activity] = {quota:val,extra_quota:0};
+  else { quotas[activity].quota=val; quotas[activity].extra_quota=0; }
+  renderQuotaMgr();
+  toast(`מגבלה עודכנה ל-${val} ✓`);
+}
+let pendingQuotaActivity = null;
+
+async function loadQuotas() {
+  const { data } = await sb.from('activity_quotas').select('*');
+  quotas = {};
+  (data||[]).forEach(q => { quotas[q.activity] = q; });
+}
+
+function getEffectiveQuota(activity) {
+  const aq = quotas[activity];
+  const gq = quotas['כלל'];
+  return {
+    actLimit: aq ? (aq.quota + aq.extra_quota) : 100,
+    globalLimit: gq ? (gq.quota + gq.extra_quota) : 100
+  };
+}
+
+async function checkQuota(activity) {
+  // count open records for this activity
+  const actCount = records.filter(r=>r.activity===activity && r.status==='טרם טופל').length;
+  const globalCount = records.filter(r=>r.status==='טרם טופל').length;
+  const { actLimit, globalLimit } = getEffectiveQuota(activity);
+
+  // Warning at 50
+  if (actCount === 50) {
+    toast(`⚠️ הגעת ל-50 יירוטים פתוחים ב${activity} — שקול לשנות אסטרטגיית יירוט`);
+  }
+  if (globalCount === 50) {
+    toast('⚠️ הגעת ל-50 יירוטים פתוחים בכלל הפעילויות');
+  }
+
+  // Block at limit
+  if (actCount >= actLimit) {
+    pendingQuotaActivity = activity;
+    document.getElementById('quota-msg').innerHTML =
+      `הגעת למגבלת <strong>${actLimit}</strong> יירוטים פתוחים בפעילות <strong>${activity}</strong>.<br>כרגע יש <strong>${actCount}</strong> יירוטים פתוחים בפעילות זו.`;
+    document.getElementById('quota-super-section').style.display = isSuperAdmin ? 'block' : 'none';
+    document.getElementById('quota-blocked-section').style.display = isSuperAdmin ? 'none' : 'block';
+    document.getElementById('modal-quota').classList.add('open');
+    return false;
+  }
+  if (globalCount >= globalLimit) {
+    pendingQuotaActivity = 'כלל';
+    document.getElementById('quota-msg').innerHTML =
+      `הגעת למגבלת <strong>${globalLimit}</strong> יירוטים פתוחים בכלל הפעילויות.<br>כרגע יש <strong>${globalCount}</strong> יירוטים פתוחים סה"כ.`;
+    document.getElementById('quota-super-section').style.display = isSuperAdmin ? 'block' : 'none';
+    document.getElementById('quota-blocked-section').style.display = isSuperAdmin ? 'none' : 'block';
+    document.getElementById('modal-quota').classList.add('open');
+    return false;
+  }
+  return true;
+}
+
+async function approveExtraQuota() {
+  if (!isSuperAdmin || !pendingQuotaActivity) return;
+  const q = quotas[pendingQuotaActivity];
+  if (!q) return;
+  const newExtra = (q.extra_quota || 0) + 50;
+  await sb.from('activity_quotas').update({
+    extra_quota: newExtra,
+    updated_by: currentManagerName,
+    updated_at: new Date().toISOString()
+  }).eq('activity', pendingQuotaActivity);
+  quotas[pendingQuotaActivity].extra_quota = newExtra;
+  document.getElementById('modal-quota').classList.remove('open');
+  toast(`✓ נפתחו 50 יירוטים נוספים ל${pendingQuotaActivity} ע"י ${currentManagerName}`);
+  pendingQuotaActivity = null;
+  // reopen add modal
+  openAdd();
+}
 function updatePriorityStyle(){
   const isHigh = document.getElementById('priority-high').checked;
   document.getElementById('priority-normal-label').style.borderColor = !isHigh ? 'var(--accent)' : 'var(--border2)';
@@ -1986,6 +2158,7 @@ function updatePriorityStyle(){
   document.getElementById('priority-high-label').style.borderColor = isHigh ? '#dc3545' : 'var(--border2)';
   document.getElementById('priority-high-label').style.background = isHigh ? '#fff0f0' : '';
 }
+function openAdd(){document.getElementById('modal-add').classList.add('open');}
 function closeAdd(){document.getElementById('modal-add').classList.remove('open');}
 function closeDup(){document.getElementById('modal-dup').classList.remove('open');}
 document.getElementById('modal-add').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAdd();});
