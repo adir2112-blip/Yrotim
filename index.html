@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v3.9</title>
+<title>מערכת יירוטים v4.0</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -2196,9 +2196,9 @@ async function renderDaily() {
   if (!dateVal) return;
   const dateLabel = new Date(dateVal).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // Fetch added on this date from yirutim table
-  const dayStart = dateVal + 'T00:00:00.000Z';
-  const dayEnd   = dateVal + 'T23:59:59.999Z';
+  // Fetch added on this date from yirutim table — Israel UTC+3
+  const dayStart = dateVal + 'T00:00:00.000+03:00';
+  const dayEnd   = dateVal + 'T23:59:59.999+03:00';
 
   const [{data: added}, {data: resolved}] = await Promise.all([
     sb.from('yirutim').select('*').gte('created_at', dayStart).lte('created_at', dayEnd),
@@ -2274,7 +2274,7 @@ function exportDailyExcel() {
   const dateVal = document.getElementById('daily-date').value;
   if (!dateVal) { toast('בחר תאריך תחילה'); return; }
   const dateLabel = new Date(dateVal).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const dayStart = dateVal+'T00:00:00.000Z', dayEnd = dateVal+'T23:59:59.999Z';
+  const dayStart = dateVal+'T00:00:00.000+03:00', dayEnd = dateVal+'T23:59:59.999+03:00';
   Promise.all([
     sb.from('yirutim').select('*').gte('created_at',dayStart).lte('created_at',dayEnd),
     sb.from('yirutim_history').select('*').gte('changed_at',dayStart).lte('changed_at',dayEnd).neq('new_status','טרם טופל')
