@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v4.0</title>
+<title>מערכת יירוטים v4.1</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -794,7 +794,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const { data: sessionData } = await sb.auth.getSession();
   if (sessionData?.session?.user) {
     const email = sessionData.session.user.email;
-    const { data: mgr } = await sb.from('managers').select('*').eq('email', email).eq('active', true).single();
+    const { data: mgr } = await sb.from('yirutim_managers').select('*').eq('email', email).eq('active', true).single();
     if (mgr) {
       currentManagerName = mgr.name || email.split('@')[0];
       isSuperAdmin = mgr.is_super_admin || false;
@@ -878,7 +878,7 @@ async function doManagerLogin() {
     errEl.style.display = 'block'; return;
   }
   // Verify manager
-  const { data: mgr } = await sb.from('managers').select('*').eq('email', email).eq('active', true).single();
+  const { data: mgr } = await sb.from('yirutim_managers').select('*').eq('email', email).eq('active', true).single();
   if (!mgr) {
     await sb.auth.signOut();
     errEl.textContent = 'אין הרשאת כניסה למנהל';
