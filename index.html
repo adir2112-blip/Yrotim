@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v5.1</title>
+<title>מערכת יירוטים v5.2</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1977,7 +1977,7 @@ async function saveAdd() {
     return;
   }
   const clean=cleanPhone;
-  const dup=records.find(r=>r.status==='טרם טופל'&&r.phone.replace(/[\s\-]/g,'')=== clean);
+  const dup=records.find(r=>r.status==='טרם טופל'&&r.phone.replace(/[\s\-]/g,'')=== clean && r.activity===activity);
   if (dup){
     const dt=new Date(dup.created_at).toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'});
     document.getElementById('dup-info').innerHTML=`<div><strong>שם:</strong> ${dup.name}</div><div><strong>טלפון:</strong> ${dup.phone}</div><div><strong>פעילות:</strong> ${dup.activity}</div><div><strong>תאריך:</strong> ${dt}</div>`;
