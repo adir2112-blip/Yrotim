@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v5.3</title>
+<title>מערכת יירוטים v5.4</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -774,7 +774,7 @@ const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומי�
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
 
-let sb, records = [], currentFilter = 'all', currentTab = 'records', statusFilter = 'all';
+let sb, records = [], currentFilter = 'all', currentTab = 'records', statusFilter = 'טרם טופל';
 let agentFilter = 'all';
 let currentAgent = null;
 let allAgents = [];
@@ -964,14 +964,14 @@ async function doLogin() {
 
 async function loadRecords(silent=false) {
   if (!silent) { document.getElementById('tbl-loading').style.display='block'; document.getElementById('main-table').style.display='none'; }
-  // Load: all pending (regardless of age) + last 15 days for closed records
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 15);
-  const {data} = await sb.from('yirutim').select('*')
-    .or(`status.eq.טרם טופל,created_at.gte.${cutoff.toISOString()}`)
-    .order('created_at',{ascending:false});
-  records = data||[];
-  if (data && data.length>0 && !('status_changed_at' in data[0])) {
+  // Load all pending + closed from last 15 days only
+  const cutoff = new Date(Date.now() - 15*86400000).toISOString();
+  const [{data: pending}, {data: closed}] = await Promise.all([
+    sb.from('yirutim').select('*').eq('status','טרם טופל').order('created_at',{ascending:false}),
+    sb.from('yirutim').select('*').neq('status','טרם טופל').gte('created_at', cutoff).order('created_at',{ascending:false})
+  ]);
+  records = [...(pending||[]), ...(closed||[])];
+  if (records.length>0 && !('status_changed_at' in records[0])) {
     document.getElementById('migration-notice').style.display='flex';
   }
   document.getElementById('sync-status').textContent = 'עודכן '+new Date().toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
