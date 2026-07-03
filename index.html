@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v5.2</title>
+<title>מערכת יירוטים v5.3</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -964,9 +964,13 @@ async function doLogin() {
 
 async function loadRecords(silent=false) {
   if (!silent) { document.getElementById('tbl-loading').style.display='block'; document.getElementById('main-table').style.display='none'; }
-  const {data} = await sb.from('yirutim').select('*').order('created_at',{ascending:false});
+  // Load: all pending (regardless of age) + last 15 days for closed records
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 15);
+  const {data} = await sb.from('yirutim').select('*')
+    .or(`status.eq.טרם טופל,created_at.gte.${cutoff.toISOString()}`)
+    .order('created_at',{ascending:false});
   records = data||[];
-  // check if status_changed_at column exists
   if (data && data.length>0 && !('status_changed_at' in data[0])) {
     document.getElementById('migration-notice').style.display='flex';
   }
