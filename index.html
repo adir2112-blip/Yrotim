@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v5.4</title>
+<title>מערכת יירוטים v5.6</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -436,6 +436,11 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <tbody id="tbl-body"></tbody>
       </table>
     </div>
+    <!-- PAGINATION -->
+    <div id="pagination-bar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 4px;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:13px;color:var(--text3)" id="pagination-info"></div>
+      <div style="display:flex;gap:6px;" id="pagination-btns"></div>
+    </div>
   </div>
 
   <!-- STATUS TAB -->
@@ -781,7 +786,9 @@ let allAgents = [];
 let rtChannel = null;
 let currentManagerName = null;
 let isSuperAdmin = false;
-let quotas = {}; // { activity: { quota, extra_quota }, 'כלל': {...} }
+let quotas = {};
+const PAGE_SIZE = 50;
+let currentPage = 1;
 
 window.addEventListener('DOMContentLoaded', async () => {
   sb = window.supabase.createClient(SB_URL, SB_KEY);
@@ -819,6 +826,15 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // ===== MODE SELECTION =====
 function showModeSelect() {
+  // נקה PIN בכל פעם שחוזרים למסך בחירה
+  ['pin0','pin1','pin2','pin3'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('login-pin-wrap').style.display = 'none';
+  document.getElementById('login-name').selectedIndex = -1;
+  document.getElementById('agent-name-search').value = '';
+  populateAgentList(allAgents);
   document.getElementById('login-mode-select').style.display = 'block';
   document.getElementById('login-manager-form').style.display = 'none';
   document.getElementById('login-agent-form').style.display = 'none';
@@ -935,7 +951,10 @@ function pinNext(idx) {
 function pinKey(e, idx) {
   if (e.key==='Backspace' && !document.getElementById('pin'+idx).value && idx>0)
     document.getElementById('pin'+(idx-1)).focus();
-  if (e.key==='Enter') doLogin();
+  if (e.key==='Enter') {
+    if (idx < 3) document.getElementById('pin'+(idx+1)).focus();
+    else doLogin();
+  }
 }
 async function doLogin() {
   const agentId = document.getElementById('login-name').value;
@@ -1617,7 +1636,7 @@ function renderStatusFilterBar() {
     `<button class="filter-chip${statusFilter===o.key?' active':''}" onclick="setStatusFilter('${o.key}')">${o.label}</button>`
   ).join('');
 }
-function setStatusFilter(f){ statusFilter=f; render(); }
+function setStatusFilter(f){ statusFilter=f; currentPage=1; render(); }
 
 function renderSLA() {
   const overdue = getSlaOverdue();
@@ -1636,7 +1655,7 @@ function renderFilterBar() {
     [{key:'all',label:'כל הפעילויות'},...ACTIVITIES.map(a=>({key:a,label:a}))]
     .map(({key,label})=>`<button class="filter-chip${currentFilter===key?' active':''}" onclick="setFilter('${key}')">${label}</button>`).join('');
 }
-function setFilter(f){currentFilter=f;render();}
+function setFilter(f){currentFilter=f;currentPage=1;render();}
 
 function renderSummary() {
   // Summary always shows counts for current activity filter only (ignoring status filter)
@@ -1682,19 +1701,28 @@ function statusPicker(r) {
 }
 
 function renderTable() {
-  const data=filtered();
+  const allData=filtered();
   const overdueIds=new Set(getSlaOverdue().map(r=>r.id));
   const tbody=document.getElementById('tbl-body');
-  if (!data.length){
+
+  if (!allData.length){
     tbody.innerHTML=`<tr><td colspan="8"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4"/></svg>אין רשומות</div></td></tr>`;
+    document.getElementById('pagination-bar').style.display='none';
     return;
   }
+
+  // Pagination
+  const totalPages = Math.ceil(allData.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  const start = (currentPage-1)*PAGE_SIZE;
+  const data = allData.slice(start, start+PAGE_SIZE);
+
   tbody.innerHTML=data.map((r,i)=>{
     const dt=new Date(r.created_at);
     const dateStr=dt.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+dt.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'});
     const isOverdue=overdueIds.has(r.id);
     return `<tr${isOverdue?' class="sla-row"':''}>
-      <td style="color:var(--text3);font-size:12px">${i+1}</td>
+      <td style="color:var(--text3);font-size:12px">${start+i+1}</td>
       <td style="font-weight:600">${r.name}${isOverdue?'<span class="sla-badge">⏱ SLA</span>':''}${r.priority==='גבוהה'?'<span class="badge-priority-high" style="margin-right:4px">גבוהה</span>':''}</td>
       <td><span class="phone-cell">${r.phone}</span></td>
       <td><span class="b-act">${r.activity}</span></td>
@@ -1705,6 +1733,37 @@ function renderTable() {
       <td><button class="del-btn" onclick="deleteRecord('${r.id}')" title="מחק"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m5 0V4h4v2"/></svg></button></td>
     </tr>`;
   }).join('');
+
+  // Render pagination bar
+  const bar = document.getElementById('pagination-bar');
+  const info = document.getElementById('pagination-info');
+  const btns = document.getElementById('pagination-btns');
+  bar.style.display = totalPages > 1 ? 'flex' : 'none';
+  info.textContent = `מציג ${start+1}–${Math.min(start+PAGE_SIZE, allData.length)} מתוך ${allData.length} רשומות`;
+
+  let btnHtml = '';
+  // Prev
+  btnHtml += `<button onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''} style="padding:6px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;${currentPage===1?'opacity:0.4;cursor:not-allowed':''}">→</button>`;
+  // Page numbers (max 5 visible)
+  const startP = Math.max(1, currentPage-2);
+  const endP   = Math.min(totalPages, startP+4);
+  for (let p=startP; p<=endP; p++) {
+    const active = p===currentPage;
+    btnHtml += `<button onclick="goPage(${p})" style="padding:6px 12px;border:1px solid ${active?'var(--accent)':'var(--border2)'};border-radius:var(--radius);background:${active?'var(--accent)':'var(--bg2)'};color:${active?'#fff':'var(--text)'};cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;font-weight:${active?'700':'400'}">${p}</button>`;
+  }
+  // Next
+  btnHtml += `<button onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''} style="padding:6px 12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);cursor:pointer;font-family:'Heebo',sans-serif;font-size:13px;${currentPage===totalPages?'opacity:0.4;cursor:not-allowed':''}">←</button>`;
+  btns.innerHTML = btnHtml;
+}
+
+function goPage(p) {
+  const allData = filtered();
+  const totalPages = Math.ceil(allData.length / PAGE_SIZE);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTable();
+  // Scroll to top of table
+  document.querySelector('.table-wrap')?.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function updateTabCount(){
