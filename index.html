@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>מערכת יירוטים v5.6</title>
+<title>מערכת יירוטים v5.7</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -595,7 +595,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
       <select id="af-dept" onchange="renderAgentsMgr()" style="padding:6px 12px;border:1px solid var(--border2);border-radius:20px;font-size:13px;font-family:'Heebo',sans-serif;background:var(--bg2);color:var(--text2);cursor:pointer;">
         <option value="">כל הפעילויות</option>
         <option>כללית אקטיב</option><option>עובדים בריא</option>
-        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option><option>איכילוב וול</option>
+        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מעוף מכירות</option><option>מאוחדת</option><option>איכילוב וול</option>
       </select>
     </div>
 
@@ -632,6 +632,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="עובדים בריא" style="width:16px;height:16px;cursor:pointer"> עובדים בריא</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="לאומית FIT" style="width:16px;height:16px;cursor:pointer"> לאומית FIT</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף לעמית" style="width:16px;height:16px;cursor:pointer"> מעוף לעמית</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף מכירות" style="width:16px;height:16px;cursor:pointer"> מעוף מכירות</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מאוחדת" style="width:16px;height:16px;cursor:pointer"> מאוחדת</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="איכילוב וול" style="width:16px;height:16px;cursor:pointer"> איכילוב וול</label>
       </div>
@@ -668,6 +669,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="עובדים בריא" style="width:16px;height:16px;cursor:pointer"> עובדים בריא</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="לאומית FIT" style="width:16px;height:16px;cursor:pointer"> לאומית FIT</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף לעמית" style="width:16px;height:16px;cursor:pointer"> מעוף לעמית</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מעוף מכירות" style="width:16px;height:16px;cursor:pointer"> מעוף מכירות</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="מאוחדת" style="width:16px;height:16px;cursor:pointer"> מאוחדת</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text)"><input type="checkbox" value="איכילוב וול" style="width:16px;height:16px;cursor:pointer"> איכילוב וול</label>
       </div>
@@ -712,7 +714,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
     <div class="form-group"><label>פעילות</label>
       <select id="f-activity">
         <option>כללית אקטיב</option><option>עובדים בריא</option>
-        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מאוחדת</option><option>איכילוב וול</option>
+        <option>לאומית FIT</option><option>מעוף לעמית</option><option>מעוף מכירות</option><option>מאוחדת</option><option>איכילוב וול</option>
       </select>
     </div>
     <div class="form-group"><label>הערה (אופציונלי)</label><input id="f-note" placeholder="פרטים נוספים"></div>
@@ -775,7 +777,7 @@ tr.sla-row:hover td{background:#fff5d6 !important;}
 <script>
 const SB_URL = 'https://owvnhfahyfxabzwcncbw.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im93dm5oZmFoeWZ4YWJ6d2NuY2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMDI1MTMsImV4cCI6MjA5NzU3ODUxM30.ZSmxu6KTLEE_E_3As7t7_nA8VXO6pQ_QGeDwyLFfCOc';
-const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מאוחדת','איכילוב וול'];
+const ACTIVITIES = ['כללית אקטיב','עובדים בריא','לאומית FIT','מעוף לעמית','מעוף מכירות','מאוחדת','איכילוב וול'];
 const STATUSES = ['טרם טופל','טופל','אין מענה'];
 const SLA_HOURS = 48;
 
